@@ -1,0 +1,30 @@
+﻿<Page x:Class="RipShout.Views.TestPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RipShout.Views"
+             mc:Ignorable="d" 
+             Style="{StaticResource UiPage}"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <StackPanel Orientation="Vertical">
+        <TextBlock Text="HI THERE!!!" FontSize="29"></TextBlock>
+        <Button Content="button test"></Button>
+        <ui:Button
+            Grid.Column="0"
+            Command="{Binding ViewModel.OnCounterIncrementCommand, Mode=OneWay}"
+            Content="Click me!"
+            Icon="Fluent24" />
+        <RadioButton
+            Margin="0,12,0,0"            
+            CommandParameter="theme_light"
+            Content="Light"
+            GroupName="themeSelect" />
+        <CheckBox Content="test box"></CheckBox>
+        <ui:ProgressRing IsIndeterminate="True"></ui:ProgressRing>
+        <ui:ProgressRing Progress="20"></ui:ProgressRing>
+        <ui:ToggleSwitch Content="Is it On"></ui:ToggleSwitch>
+        
+    </StackPanel>
+</Page>
