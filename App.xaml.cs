@@ -35,7 +35,10 @@ public partial class App : Application
 
     private static readonly IHost _host = Host
     .CreateDefaultBuilder()
-    .ConfigureAppConfiguration(c => { c.SetBasePath(Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location)); })
+    .ConfigureAppConfiguration(c =>
+    {
+        c.SetBasePath(Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location));
+    })
     .ConfigureServices((context, services) =>
     {
         // App Host
@@ -48,7 +51,7 @@ public partial class App : Application
         services.AddSingleton<IDialogService, DialogService>();
 
         // Tray icon
-        services.AddSingleton<INotifyIconService, CustomNotifyIconService>();
+        //services.AddSingleton<INotifyIconService, CustomNotifyIconService>();
 
         // Page resolver service
         services.AddSingleton<IPageService, PageService>();

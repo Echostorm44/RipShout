@@ -12,6 +12,7 @@ using System.Web;
 using System.Xml.Linq;
 
 namespace RipShout.Helpers;
+
 public static class TrackInfoHelpers
 {
     /*
@@ -31,22 +32,23 @@ public static class TrackInfoHelpers
             var result = new ScrapeDataDiscogsAlbum();
             var codedTerm = HttpUtility.UrlEncode(artist + "+-+" + track);
             var client = new RestClient(@"https://api.discogs.com/database/search?query=" + codedTerm + 
-                "&token=" + token + "&per_page=3&format=album&type=master");
+                "&token=" + token + "&per_page=5&format=album&type=master");
             var request = new RestRequest();
             request.Method = Method.Get;
             request.Timeout = -1;
             var response = client.Execute(request);
-            if (response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
+            if(response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
             {
                 var myDeserializedClass = JsonConvert.DeserializeObject<ScrapeDataDiscogsTrackServerResponse>(response.Content);
-                if (myDeserializedClass == null || myDeserializedClass.results == null || myDeserializedClass.results.Count == 0)
+                if(myDeserializedClass == null || myDeserializedClass.results == null || myDeserializedClass.results.Count == 0)
                 {
                     return null;
                 }
-                return myDeserializedClass.results.First();
+                var sorted = myDeserializedClass.results.Where(a => GeneralHelpers.IsStringYear(a.year)).OrderBy(a => int.Parse(a.year));
+                return sorted.First();
             }
         }
-        catch (Exception)
+        catch(Exception)
         {
             // TODO do something with this
         }
@@ -59,37 +61,31 @@ public static class TrackInfoHelpers
         {
             var result = new ScrapDataItunesTrack();
             var codedTerm = HttpUtility.UrlEncode(artist + "-" + track);
-            var client = new RestClient("https://itunes.apple.com/search?media=music&entity=song&limit=10&term=" + codedTerm);
+            var client = new RestClient("https://itunes.apple.com/search?media=music&entity=song&limit=30&term=" + codedTerm);
             var request = new RestRequest();
             request.Method = Method.Get;
             request.Timeout = -1;
             var response = client.Execute(request);
-            if (response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
+            if(response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
             {
                 var myDeserializedClass = JsonConvert.DeserializeObject<ScrapeDataItuneTrackServerResponse>(response.Content);
-                if (myDeserializedClass == null)
+                if(myDeserializedClass == null)
                 {
                     return null;
                 }
-                foreach (var item in myDeserializedClass.results.OrderBy(a => a.releaseDate))
+                var albs = myDeserializedClass.results.OrderBy(a => a.releaseDate);
+                foreach(var item in albs)
                 {// TODO we're going to have to fuzzy match this, it's too much for it to be dead on.
-                    if (Levenshtein.GetRatioPercent(item.artistName, artist) > 30 &&
+                    if(Levenshtein.GetRatioPercent(item.artistName, artist) > 30 &&
                         Levenshtein.GetRatioPercent(item.trackName, track) > 30 &&
                         Levenshtein.GetRatioPercent(item.trackCensoredName, track) > 30)
                     {
                         return item;
                     }
-
-                    //if (item.artistName.JustNumbersAndLettersAndLower() == artist.JustNumbersAndLettersAndLower() && 
-                    //    item.trackName.JustNumbersAndLettersAndLower() == track.JustNumbersAndLettersAndLower() && 
-                    //    item.trackCensoredName.JustNumbersAndLettersAndLower() == track.JustNumbersAndLettersAndLower())
-                    //{
-                    //    return item;
-                    //}
                 }
             }
         }
-        catch (Exception)
+        catch(Exception)
         {
             // TODO do something with this
         }
@@ -110,19 +106,19 @@ public static class TrackInfoHelpers
             };
             // Search for an release-group by title.
             var groups = await client.ReleaseGroups.SearchAsync(query);
-            if (groups.Items.Count == 0)
+            if(groups.Items.Count == 0)
             {
                 return await GetArtistIdFromMusicBrainz(band);// backup plan
             }
             var releaseGroup = groups.Items.FirstOrDefault(a => Levenshtein.GetRatioPercent(a.Title, album) > 30);
-            if (releaseGroup == null)
+            if(releaseGroup == null)
             {
                 return await GetArtistIdFromMusicBrainz(band);// backup plan
             }
             var artistID = releaseGroup.Credits?.FirstOrDefault()?.Artist?.Id;
             return artistID;
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
             // TODO
         }
@@ -135,14 +131,14 @@ public static class TrackInfoHelpers
         {
             MusicBrainzClient client = new MusicBrainzClient();
             var artists = await client.Artists.SearchAsync(name, 3);
-            if (artists != null && artists.Count > 0)
+            if(artists != null && artists.Count > 0)
             {
                 return artists.First().Id;
                 //var artist = artists.Items.OrderByDescending(a => Levenshtein.GetRatio(a.Name, name)).First();
                 //artist = await client.Artists.GetAsync(artist.Id, "artist-rels", "url-rels");
             }
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
             // TODO
         }
@@ -159,24 +155,22 @@ public static class TrackInfoHelpers
             request.Method = Method.Get;
             request.Timeout = -1;
             var response = client.Execute(request);
-            if (response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
+            if(response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
             {
                 var myDeserializedClass = JsonConvert.DeserializeObject<ScrapeDataFanArt>(response.Content);
-                if (myDeserializedClass == null || myDeserializedClass.artistbackground == null || myDeserializedClass.artistbackground.Count == 0)
+                if(myDeserializedClass == null || myDeserializedClass.artistbackground == null || myDeserializedClass.artistbackground.Count == 0)
                 {
                     return null;
                 }
                 return myDeserializedClass;
             }
         }
-        catch (Exception)
+        catch(Exception)
         {
             // TODO do something with this
         }
         return null;
     }
-
-
 
     #region MusicBrainzDetail
     //public static async Task<string?> GetAlbumAndSongDataFromMusicBrainz(string artist, string album, string song)
@@ -221,7 +215,6 @@ public static class TrackInfoHelpers
     //    return null;
     //}
     #endregion
-
     static bool IsOfficial(Release r)
     {
         return !string.IsNullOrEmpty(r.Date) && !string.IsNullOrEmpty(r.Status)
@@ -271,7 +264,6 @@ public sealed class ScrapDataItunesTrack
 
     public ScrapDataItunesTrack()
     {
-        
     }
 }
 
