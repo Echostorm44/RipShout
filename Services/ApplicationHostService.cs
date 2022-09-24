@@ -60,7 +60,7 @@ namespace RipShout.Services
         {
             await Task.CompletedTask;
 
-            if (!Application.Current.Windows.OfType<Container>().Any())
+            if(!Application.Current.Windows.OfType<Container>().Any())
             {
                 _navigationWindow = _serviceProvider.GetService(typeof(INavigationWindow)) as INavigationWindow;
                 _navigationWindow!.ShowWindow();
@@ -72,13 +72,13 @@ namespace RipShout.Services
                 // _navigationWindow.Navigate(typeof(Views.Pages.Dashboard));
             }
 
-            var notifyIconManager = _serviceProvider.GetService(typeof(INotifyIconService)) as INotifyIconService;
+            //var notifyIconManager = _serviceProvider.GetService(typeof(INotifyIconService)) as INotifyIconService;
 
-            if (!notifyIconManager!.IsRegistered)
-            {
-                notifyIconManager!.SetParentWindow(_navigationWindow as Window);
-                notifyIconManager.Register();
-            }
+            //if (!notifyIconManager!.IsRegistered)
+            //{
+            //    notifyIconManager!.SetParentWindow(_navigationWindow as Window);
+            //    notifyIconManager.Register();
+            //}
 
             await Task.CompletedTask;
         }

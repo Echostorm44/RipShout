@@ -27,6 +27,7 @@ namespace RipShout;
 /// </summary>
 public partial class MainWindow : INavigationWindow
 {
+    //<a href="https://www.flaticon.com/free-icons/radio" title="radio icons">Radio icons created by Freepik - Flaticon</a>
     public ViewModels.MainViewModel ViewModel { get; set; }
     private bool initialized = false;
     private readonly IThemeService themeService;
@@ -37,8 +38,8 @@ public partial class MainWindow : INavigationWindow
     {
         themeService = ts;
         ViewModel = viewModel;
-        DataContext = this; 
-        InitializeComponent();           
+        DataContext = this;
+        InitializeComponent();
         navigationService.SetNavigationControl(RootNavigation);
         SetPageService(pageService);
         Loaded += (_, _) => InvokeSplashScreen();
@@ -46,8 +47,10 @@ public partial class MainWindow : INavigationWindow
 
     private void InvokeSplashScreen()
     {
-        if (initialized)
+        if(initialized)
+        {
             return;
+        }
 
         initialized = true;
 

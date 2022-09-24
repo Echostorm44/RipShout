@@ -22,15 +22,12 @@ public class SongDetailsModel
     public bool HasArtistImagesInLocalFolder { get; set; }
     public string Lyrics { get; set; }
     public string PathToAlbumArt { get; set; }
-    public bool AlbumArtLoaded { get; set; }
+    public bool ArtLoaded { get; set; }
     public string ReleaseYear { get; set; }
     public string TrackNumber { get; set; }
     public string PathToBackdrops { get; set; }
 
-    public string SongArtistCombined
-    { 
-        get =>  ArtistName + " - " + SongName;
-    }
+    public string SongArtistCombined { get => ArtistName + " - " + SongName; }
 
     public SongDetailsModel()
     {
@@ -47,6 +44,7 @@ public class SongDetailsModel
         ReleaseYear = "";
         TrackNumber = "";
         PathToBackdrops = "";
+        ArtLoaded = false;
     }
 
     public SongDetailsModel DeepCopy()

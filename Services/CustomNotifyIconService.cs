@@ -4,9 +4,9 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
-using System.Windows;
 using Wpf.Ui.Common;
 using Wpf.Ui.Mvvm.Services;
 
@@ -16,10 +16,10 @@ namespace RipShout.Services
     {
         public CustomNotifyIconService()
         {
-            TooltipText = "WPF UI - Service Icon";
+            TooltipText = "Blerg";
 
             // If this icon is not defined, the application icon will be used.
-            Icon = BitmapFrame.Create(new Uri("pack://application:,,,/Images/wpfui.png", UriKind.Absolute));
+            Icon = BitmapFrame.Create(new Uri("pack://application:,,,/Images/app.png", UriKind.Absolute));
 
             ContextMenu = new ContextMenu
             {
@@ -54,9 +54,13 @@ namespace RipShout.Services
             }
             };
 
-            foreach (var singleContextMenuItem in ContextMenu.Items)
-                if (singleContextMenuItem is MenuItem)
+            foreach(var singleContextMenuItem in ContextMenu.Items)
+            {
+                if(singleContextMenuItem is MenuItem)
+                {
                     ((MenuItem)singleContextMenuItem).Click += OnMenuItemClick;
+                }
+            }
         }
 
         protected override void OnLeftClick()
@@ -66,8 +70,10 @@ namespace RipShout.Services
 
         private void OnMenuItemClick(object sender, RoutedEventArgs e)
         {
-            if (sender is not MenuItem menuItem)
+            if(sender is not MenuItem menuItem)
+            {
                 return;
+            }
 
             System.Diagnostics.Debug.WriteLine($"DEBUG | WPF UI Tray clicked: {menuItem.Tag}", "Wpf.Ui.Demo");
         }

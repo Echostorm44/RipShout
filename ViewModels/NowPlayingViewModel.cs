@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
+using RipShout.Helpers;
 using RipShout.Models;
 using System;
 using System.Collections.Concurrent;
@@ -27,7 +28,7 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
         get => currentBytesRead;
         set
         {
-            if (currentBytesRead == value)
+            if(currentBytesRead == value)
             {
                 return;
             }
@@ -42,7 +43,7 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
         get => currentSongName;
         set
         {
-            if (currentSongName == value)
+            if(currentSongName == value)
             {
                 return;
             }
@@ -57,7 +58,7 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
         get => currentBitrate;
         set
         {
-            if (currentBitrate == value)
+            if(currentBitrate == value)
             {
                 return;
             }
@@ -79,7 +80,7 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
         get => currentAlbumImagePath;
         set
         {
-            if (currentAlbumImagePath == value)
+            if(currentAlbumImagePath == value)
             {
                 return;
             }
@@ -95,7 +96,7 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
         get => currentBackdropImagePath;
         set
         {
-            if (currentBackdropImagePath == value)
+            if(currentBackdropImagePath == value)
             {
                 return;
             }
@@ -110,7 +111,8 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
     public NowPlayingViewModel()
     {
         BackDropImages = new ConcurrentDictionary<int, string>();
-        DefaultBackDropImagePath = System.IO.Path.Combine(Assembly.GetExecutingAssembly().Location, "/Images/DefaultBackdrop.jpg"); ;
+        DefaultBackDropImagePath = System.IO.Path.Combine(Assembly.GetExecutingAssembly().Location, "/Images/DefaultBackdrop.png");
+        ;
         CurrentBackdropImagePath = DefaultBackDropImagePath;
         // We'll have to have a timed loop that will rotate the background images every now and then
         imageTimer = new Timer(ImageTimerElapsed, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
@@ -118,14 +120,14 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
         WeakReferenceMessenger.Default.Register<CurrentStreamStatsChangedMessage>(this, (r, m) =>
         {
             var incomingSongName = m.Value.SongArtistCombined;
-            if (CurrentSongName != incomingSongName)
+            if(CurrentSongName != incomingSongName)
             {
                 // Track has changed, 
                 albumArtLoaded = false;
                 backdropsLoaded = false;
             }
             CurrentSongName = incomingSongName;
-            CurrentBytesRead = (m.Value.BytesRead / 1024).ToString("N2") + " kB";
+            CurrentBytesRead = GeneralHelpers.GetHumanReadableFileSize(m.Value.BytesRead);
             CurrentBitrate = "@ " + m.Value.Bitrate + "k";
             // Handle the message here, with r being the recipient and m being the
             // input message. Using the recipient passed as input makes it so that
@@ -133,27 +135,27 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
 
 
             // These two are loading too soon.  Need to wait for message saying there is something to look at or not.
-            if (!albumArtLoaded)
+            if(!albumArtLoaded && m.Value.ArtLoaded)
             {
-                if (!string.IsNullOrEmpty(m.Value.PathToAlbumArt))
+                if(!string.IsNullOrEmpty(m.Value.PathToAlbumArt))
                 {
                     CurrentAlbumImagePath = m.Value.PathToAlbumArt;
                 }
                 else
                 {
-                    CurrentAlbumImagePath = DefaultBackDropImagePath;                    
+                    CurrentAlbumImagePath = DefaultBackDropImagePath;
                 }
                 albumArtLoaded = true;
             }
 
-            if (!backdropsLoaded)
+            if(!backdropsLoaded && m.Value.ArtLoaded)
             {
                 BackDropImages.Clear();
-                if (m.Value.HasArtistImagesInLocalFolder)
-                {   
+                if(m.Value.HasArtistImagesInLocalFolder)
+                {
                     // Load up the images
                     int counter = 0;
-                    foreach (var item in Directory.GetFiles(m.Value.PathToBackdrops))
+                    foreach(var item in Directory.GetFiles(m.Value.PathToBackdrops))
                     {
                         BackDropImages.TryAdd(counter, item);
                         counter++;
@@ -165,16 +167,14 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
                 }
                 backdropsLoaded = true;
             }
-
-
         });
     }
 
     void ImageTimerElapsed(object state)
     {
-        if (backdropsLoaded = true && BackDropImages.Count > 0)
-        {            
-            if (currentBackdropIndex >= (BackDropImages.Count - 1))
+        if(backdropsLoaded && BackDropImages.Count > 0)
+        {
+            if(currentBackdropIndex > (BackDropImages.Count - 1))
             {
                 currentBackdropIndex = 0;
             }
@@ -183,7 +183,6 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
             currentBackdropIndex++;
         }
     }
-
 
 
     public void Dispose()
