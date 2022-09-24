@@ -134,7 +134,7 @@ public static class TrackInfoHelpers
         try
         {
             MusicBrainzClient client = new MusicBrainzClient();
-            var artists = await client.Artists.SearchAsync(name, 20);
+            var artists = await client.Artists.SearchAsync(name, 3);
             if (artists != null && artists.Count > 0)
             {
                 return artists.First().Id;
