@@ -112,7 +112,7 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
     {
         BackDropImages = new ConcurrentDictionary<int, string>();
         DefaultBackDropImagePath = System.IO.Path.Combine(Assembly.GetExecutingAssembly().Location, "/Images/DefaultBackdrop.png");
-        ;
+
         CurrentBackdropImagePath = DefaultBackDropImagePath;
         // We'll have to have a timed loop that will rotate the background images every now and then
         imageTimer = new Timer(ImageTimerElapsed, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));

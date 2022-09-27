@@ -7,9 +7,12 @@
       xmlns:vms="clr-namespace:RipShout.ViewModels"
       mc:Ignorable="d" 
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-      d:DesignHeight="450" d:DesignWidth="800"
+      d:DesignHeight="450" d:DesignWidth="800" Loaded="UiPage_Loaded"
       Title="StationsPage">
     <Grid>
+        <Grid.Background>
+            <ImageBrush Opacity="0.6" ImageSource="/Images/DefaultBackdrop.png" Stretch="UniformToFill"/>
+        </Grid.Background>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
@@ -24,7 +27,7 @@
             <ui:Button Name="not" Content="asdasdasd" Grid.Column="1" Margin="15,0" Command="{Binding Path=PlayChannelCommand}" CommandParameter="{Binding .}"></ui:Button>
         </StackPanel>
         
-        <ListView x:Name="lstStations" Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding Channels}">
+        <ListView x:Name="lstStations" Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding Channels}" Margin="0, 15, 0, 0">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid>
@@ -39,10 +42,10 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock FontSize="16" Text="{Binding Name}" Grid.Column="1"></TextBlock>
                         <TextBlock FontSize="16" Text="{Binding Description}" Grid.Column="1" Grid.Row="1"></TextBlock>
-                        <Button Content="Launch" Grid.Column="0" Grid.RowSpan="2" FontSize="16" Padding="10,0"
-                                            Command="{Binding Path=PlayChannelCommand, RelativeSource={RelativeSource AncestorType={x:Type vms:StationsViewModel}} }" 
+                        <ui:Button Icon="Play24" Grid.Column="0" Grid.RowSpan="2" FontSize="16" Padding="10" Margin="0,0,15,0"
+                                            Command="{Binding Path=ViewModel.PlayChannelCommand, RelativeSource={RelativeSource AncestorType={x:Type local:StationsPage}} }" 
                                             CommandParameter="{Binding .}">
-                        </Button>
+                        </ui:Button>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

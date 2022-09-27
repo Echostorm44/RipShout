@@ -67,8 +67,7 @@ public partial class StationsPage
             cache stations for session
             do a now playing row too for each station
          */
-        await ViewModel.StartItUp();
-        var hoo = 1;
+
         // These are better
         //https://api.audioaddict.com/v1/radiotunes/channels
 
@@ -119,5 +118,10 @@ public partial class StationsPage
 
         //var loo = NavigationService;
         //_navigationService.Navigate(typeof(Views.NowPlayingPage));
+    }
+
+    private async void UiPage_Loaded(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.StartItUp();
     }
 }
