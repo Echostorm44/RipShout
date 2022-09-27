@@ -19,16 +19,14 @@ namespace RipShout.Views;
 /// <summary>
 /// Interaction logic for NowPlayingPage.xaml
 /// </summary>
-public partial class NowPlayingPage : Page
+public partial class NowPlayingPage
 {
-    public NowPlayingViewModel ViewModel
+    public NowPlayingViewModel ViewModel { get; }
+
+    public NowPlayingPage(NowPlayingViewModel vm)
     {
-        get;
-    }
-    public NowPlayingPage()
-    {
-        InitializeComponent();
-        ViewModel = new NowPlayingViewModel();
+        ViewModel = vm;
         this.DataContext = ViewModel;
+        InitializeComponent();
     }
 }
