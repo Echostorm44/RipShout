@@ -14,7 +14,7 @@ namespace RipShout.AudioAddictChannelServices;
 public static class AudioAddictGetChannelsService
 {
     static async Task<(string Primary, string Backup)> GetStreamingPrefixesAsync()
-    {
+    {// it will  return different subdomains per geographic region
         string primary = "prem1";
         string backup = "prem4";
 
@@ -31,11 +31,21 @@ public static class AudioAddictGetChannelsService
             if(response.IsSuccessStatusCode)
             {
                 var raw = await response.Content.ReadAsStringAsync();
-                var regPrefs = new Regex("http://(.+)?.di.fm");
-                var prefMatch = regPrefs.Match(raw);
-                if(prefMatch.Groups != null && prefMatch.Groups.Count > 1)
+                var regPrefs = new Regex(@"http://(.+)?.di.fm", RegexOptions.Multiline);
+                var prefMatchs = regPrefs.Matches(raw);
+                var primaryDone = false;
+                foreach(Match prefMatch in prefMatchs)
                 {
-                    var loo = prefMatch.Groups[0].Value;
+                    if(prefMatch.Groups != null && prefMatch.Groups.Count > 1)
+                    {
+                        if(!primaryDone)
+                        {
+                            primary = prefMatch.Groups[1].Value;
+                            primaryDone = true;
+                            continue;
+                        }
+                        backup = primary = prefMatch.Groups[1].Value;
+                    }
                 }
             }
         });
@@ -109,8 +119,8 @@ public static class AudioAddictGetChannelsService
                                 {
                                     topDomain = "fm";
                                 }
-                                chan.PrimaryURL = $@"http://{prefixes.Primary}{stat}.{topDomain}:80/{item.key}?{listenKey}";
-                                chan.BackupURL = $@"http://{prefixes.Backup}{stat}.{topDomain}:80/{item.key}?{listenKey}";
+                                chan.PrimaryURL = $@"http://{prefixes.Primary}.{stat}.{topDomain}:80/{item.key}?{listenKey}";
+                                chan.BackupURL = $@"http://{prefixes.Backup}.{stat}.{topDomain}:80/{item.key}?{listenKey}";
                                 chan.Family = fam;
                                 chan.ID = GeneralHelpers.SetChannelID(chan);
                                 chan.IsFavorite = favs.Contains(chan.ID);

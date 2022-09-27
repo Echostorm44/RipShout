@@ -47,6 +47,7 @@ public class RadioService : IDisposable
     SongDetailsModel currentSongDetails;
     MediaPlayer player;
 
+    // TODO add a way to adjust media player volume
 
     public RadioService()
     {
