@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace RipShout.Services;
+
+
+
 
 public delegate void StreamTitleChangedHandler(object source, string title, string genre, string bitrate, string extension);
 
@@ -30,6 +33,29 @@ public class ShoutCastStream : Stream
 
     public async Task<bool> StartUp(string url)
     {
+        //HttpWebResponse response;
+        //HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
+        //request.Headers.Clear();
+        //request.Headers.Add("Icy-MetaData", "1");
+        //request.KeepAlive = false;
+        //request.UserAgent = "VLC media player";
+
+        //response = (HttpWebResponse)request.GetResponse();
+        //metaInt = int.Parse(response.Headers["Icy-MetaInt"]);
+        //receivedBytes = 0;
+
+        //netStream = response.GetResponseStream();
+        //return true;
+
+        // Check for playlist url
+        if(url.Contains(".pls"))
+        {
+            //text = Regex.Replace(text,
+            //@"((http|ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?)",
+            //    "<a target='_blank' href='$1'>$1</a>");
+        }
+
+
         HttpClient client = new HttpClient();
         var request = new HttpRequestMessage()
         {
@@ -46,10 +72,10 @@ public class ShoutCastStream : Stream
             bitRate = response.Headers.First(a => a.Key == "icy-br").Value.First();
             streamGenre = response.Headers.First(a => a.Key == "icy-genre").Value.First();
 
-            if (response.Headers.Any(a => a.Key == "Content-Type"))
+            if(response.Headers.Any(a => a.Key == "Content-Type"))
             {
                 var conType = response.Headers.FirstOrDefault(a => a.Key == "Content-Type").Value.First();
-                if (!string.IsNullOrEmpty(conType) && conType.ToLower().StartsWith("audio"))
+                if(!string.IsNullOrEmpty(conType) && conType.ToLower().StartsWith("audio"))
                 {
                     AudioEncodeType = conType.Replace("audio/", "");
                 }
@@ -61,14 +87,13 @@ public class ShoutCastStream : Stream
 
     public ShoutCastStream()
     {
-        
     }
 
     private static NetworkCredential ParseCreds(string url)
     {
         Regex regCreds = new Regex(@"http://(.+?):(.+?)@.+");
         Match mCreds = regCreds.Match(url);
-        if (mCreds.Success)
+        if(mCreds.Success)
         {
             return new NetworkCredential(mCreds.Groups[1].Value, mCreds.Groups[2].Value);
         }
@@ -87,7 +112,7 @@ public class ShoutCastStream : Stream
         string metaString = Encoding.ASCII.GetString(metaInfo);
 
         string newStreamTitle = Regex.Match(metaString, "(StreamTitle=')(.*)?'").Groups[2].Value.Trim();
-        if (!newStreamTitle.Equals(streamTitle))
+        if(!newStreamTitle.Equals(streamTitle))
         {
             streamTitle = newStreamTitle;
             OnStreamTitleChanged();
@@ -99,7 +124,7 @@ public class ShoutCastStream : Stream
     /// </summary>
     protected virtual void OnStreamTitleChanged()
     {
-        if (StreamTitleChanged != null)
+        if(StreamTitleChanged != null)
         {
             StreamTitleChanged(this, streamTitle, streamGenre, bitRate, AudioEncodeType);
         }
@@ -108,56 +133,29 @@ public class ShoutCastStream : Stream
     /// <summary>
     /// Gets a value that indicates whether the ShoutcastStream supports reading.
     /// </summary>
-    public override bool CanRead
-    {
-        get { return connected; }
-    }
+    public override bool CanRead { get { return connected; } }
 
     /// <summary>
-    /// Gets a value that indicates whether the ShoutcastStream supports seeking.
-    /// This property will always be false.
+    /// Gets a value that indicates whether the ShoutcastStream supports seeking. This property will always be false.
     /// </summary>
-    public override bool CanSeek
-    {
-        get { return false; }
-    }
+    public override bool CanSeek { get { return false; } }
 
     /// <summary>
-    /// Gets a value that indicates whether the ShoutcastStream supports writing.
-    /// This property will always be false.
+    /// Gets a value that indicates whether the ShoutcastStream supports writing. This property will always be false.
     /// </summary>
-    public override bool CanWrite
-    {
-        get { return false; }
-    }
+    public override bool CanWrite { get { return false; } }
 
     /// <summary>
     /// Gets the title of the stream
     /// </summary>
-    public string StreamTitle
-    {
-        get { return streamTitle; }
-    }
+    public string StreamTitle { get { return streamTitle; } }
 
-    public string BitRate
-    {
-        get
-        {
-            return bitRate;
-        }
-    }
+    public string BitRate { get { return bitRate; } }
 
-    public string StreamGenre
-    {
-        get
-        {
-            return streamGenre;
-        }
-    }
+    public string StreamGenre { get { return streamGenre; } }
 
     /// <summary>
-    /// Flushes data from the stream.
-    /// This method is currently not supported
+    /// Flushes data from the stream. This method is currently not supported
     /// </summary>
     public override void Flush()
     {
@@ -165,28 +163,19 @@ public class ShoutCastStream : Stream
     }
 
     /// <summary>
-    /// Gets the length of the data available on the Stream.
-    /// This property is not currently supported and always thows a <see cref="NotSupportedException"/>.
+    /// Gets the length of the data available on the Stream. This property is not currently supported and always thows a
+    /// <see cref="NotSupportedException"/>.
     /// </summary>
-    public override long Length
-    {
-        get { throw new NotSupportedException(); }
-    }
+    public override long Length { get { throw new NotSupportedException(); } }
 
     /// <summary>
-    /// Gets or sets the current position in the stream.
-    /// This property is not currently supported and always thows a <see cref="NotSupportedException"/>.
+    /// Gets or sets the current position in the stream. This property is not currently supported and always thows a
+    /// <see cref="NotSupportedException"/>.
     /// </summary>
     public override long Position
     {
-        get
-        {
-            throw new NotSupportedException();
-        }
-        set
-        {
-            throw new NotSupportedException();
-        }
+        get { throw new NotSupportedException(); }
+        set { throw new NotSupportedException(); }
     }
 
     /// <summary>
@@ -200,19 +189,22 @@ public class ShoutCastStream : Stream
     {
         try
         {
-            if (netStream == null)
+            if(netStream == null)
             {
                 connected = false;
                 return -1;
             }
-            if (receivedBytes == 16000)//if (receivedBytes == metaInt)
+            if(receivedBytes == metaInt)//if(receivedBytes == 16000)
             {
                 int metaLen = netStream.ReadByte();
-                if (metaLen > 0)
+                if(metaLen > 0)
                 {
                     byte[] metaInfo = new byte[metaLen * 16];
                     int len = 0;
-                    while ((len += netStream.Read(metaInfo, len, metaInfo.Length - len)) < metaInfo.Length) ;
+                    while((len += netStream.Read(metaInfo, len, metaInfo.Length - len)) < metaInfo.Length)
+                    {
+                        ;
+                    }
                     ParseMetaInfo(metaInfo);
                 }
                 receivedBytes = 0;
@@ -223,7 +215,7 @@ public class ShoutCastStream : Stream
             receivedBytes += result;
             return result;
         }
-        catch (Exception)
+        catch(Exception)
         {
             connected = false;
             return -1;
@@ -236,15 +228,15 @@ public class ShoutCastStream : Stream
     public override void Close()
     {
         connected = false;
-        if (netStream != null)
+        if(netStream != null)
         {
             netStream.Close();
-        }        
+        }
     }
 
     /// <summary>
-    /// Sets the current position of the stream to the given value.
-    /// This Method is not currently supported and always throws a <see cref="NotSupportedException"/>.
+    /// Sets the current position of the stream to the given value. This Method is not currently supported and always
+    /// throws a <see cref="NotSupportedException"/>.
     /// </summary>
     /// <param name="offset"></param>
     /// <param name="origin"></param>
@@ -255,8 +247,7 @@ public class ShoutCastStream : Stream
     }
 
     /// <summary>
-    /// Sets the length of the stream.
-    /// This Method always throws a <see cref="NotSupportedException"/>.
+    /// Sets the length of the stream. This Method always throws a <see cref="NotSupportedException"/>.
     /// </summary>
     /// <param name="value"></param>
     public override void SetLength(long value)
@@ -265,8 +256,8 @@ public class ShoutCastStream : Stream
     }
 
     /// <summary>
-    /// Writes data to the ShoutcastStream.
-    /// This method is not currently supported and always throws a <see cref="NotSupportedException"/>.
+    /// Writes data to the ShoutcastStream. This method is not currently supported and always throws a <see
+    /// cref="NotSupportedException"/>.
     /// </summary>
     /// <param name="buffer"></param>
     /// <param name="offset"></param>

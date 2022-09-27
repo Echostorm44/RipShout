@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RipShout.Helpers;
 using RipShout.Models;
 using RipShout.Services;
 using RipShout.ViewModels;
@@ -27,10 +28,18 @@ namespace RipShout;
 public partial class App : Application
 {
     public static RadioService? MyRadio { get; set; }
+    public static SettingsModel MySettings { get; set; }
 
     public App()
     {
         MyRadio = new RadioService();
+        MySettings = SettingsIoHelpers.LoadGeneralSettingsFromDisk();
+        MySettings.ValueChanged += MySettings_ValueChanged;
+    }
+
+    private void MySettings_ValueChanged(object source)
+    {
+        SettingsIoHelpers.SaveGeneralSettingsToDisk((SettingsModel)source);
     }
 
     private static readonly IHost _host = Host
@@ -47,9 +56,7 @@ public partial class App : Application
         // Theme manipulation
         services.AddSingleton<IThemeService, ThemeService>();
 
-        // Dialog service
-        services.AddSingleton<IDialogService, DialogService>();
-
+        services.AddSingleton<ISnackbarService, SnackbarService>();
         // Tray icon
         //services.AddSingleton<INotifyIconService, CustomNotifyIconService>();
 
@@ -66,6 +73,9 @@ public partial class App : Application
 
         services.AddScoped<Views.NowPlayingPage>();
         services.AddScoped<NowPlayingViewModel>();
+
+        services.AddScoped<Views.SettingsPage>();
+        services.AddScoped<SettingsViewModel>();
 
         // Configuration
         services.Configure<AppConfig>(context.Configuration.GetSection(nameof(AppConfig)));

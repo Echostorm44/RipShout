@@ -26,7 +26,7 @@ public class MainViewModel : INotifyPropertyChanged
         get => applicationTitle;
         set
         {
-            if (applicationTitle == value)
+            if(applicationTitle == value)
             {
                 return;
             }
@@ -42,7 +42,7 @@ public class MainViewModel : INotifyPropertyChanged
         get => navigationItems;
         set
         {
-            if (navigationItems == value)
+            if(navigationItems == value)
             {
                 return;
             }
@@ -58,7 +58,7 @@ public class MainViewModel : INotifyPropertyChanged
         get => navigationFooter;
         set
         {
-            if (navigationFooter == value)
+            if(navigationFooter == value)
             {
                 return;
             }
@@ -72,19 +72,18 @@ public class MainViewModel : INotifyPropertyChanged
 
     public MainViewModel()
     {//Wpf.Ui.Appearance.Theme.Apply(Wpf.Ui.Appearance.ThemeType.Light);
-        if (!isInitialized)
+        if(!isInitialized)
         {
             InitializeViewModel();
-            
         }
     }
-    
+
     public ObservableCollection<MenuItem> TrayMenuItems
     {
         get => trayMenuItems;
         set
         {
-            if (trayMenuItems == value)
+            if(trayMenuItems == value)
             {
                 return;
             }
@@ -99,7 +98,6 @@ public class MainViewModel : INotifyPropertyChanged
 
     private void InitializeViewModel()
     {
-        
         ApplicationTitle = "RipShout";
         NavigationItems = new ObservableCollection<INavigationControl>
         {
@@ -126,23 +124,8 @@ public class MainViewModel : INotifyPropertyChanged
                 Content = "Settings",
                 PageTag = "settings",
                 Icon = SymbolRegular.Settings24,
-                PageType = typeof(NowPlayingPage)
+                PageType = typeof(SettingsPage)
             }
-        };
-
-        TrayMenuItems = new ObservableCollection<MenuItem>
-        {
-            new MenuItem
-            {
-                Header = "Now Playing",
-                Tag = "playing"                    
-            },
-            new MenuItem
-            {
-                Header = "Stations",
-                Tag = "stations"
-            }
-
         };
 
         isInitialized = true;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RipShout.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -43,5 +44,28 @@ public static class GeneralHelpers
     public static bool IsStringYear(string year)
     {
         return (int.TryParse(year, out int myYear));
+    }
+
+    public static string SetChannelID(ChannelModel station)
+    {
+        return GetHashString(station.Name + ";" + station.PrimaryURL + ";" + station.Family);
+    }
+
+    public static byte[] GetHash(string inputString)
+    {
+        using(HashAlgorithm algorithm = MD5.Create())// Doesn't need to be super secure, just fast && unique
+        {
+            return algorithm.ComputeHash(Encoding.UTF8.GetBytes(inputString));
+        }
+    }
+
+    public static string GetHashString(string inputString)
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach(byte b in GetHash(inputString))
+        {
+            sb.Append(b.ToString("X2"));
+        }
+        return sb.ToString();
     }
 }

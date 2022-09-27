@@ -34,7 +34,7 @@ public partial class MainWindow : INavigationWindow
 
 
     public MainWindow(MainViewModel viewModel, INavigationService navigationService, 
-        IPageService pageService, IThemeService ts)
+        IPageService pageService, IThemeService ts, ISnackbarService snackbarService)
     {
         themeService = ts;
         ViewModel = viewModel;
@@ -42,6 +42,7 @@ public partial class MainWindow : INavigationWindow
         InitializeComponent();
         navigationService.SetNavigationControl(RootNavigation);
         SetPageService(pageService);
+        snackbarService.SetSnackbarControl(RootSnackbar);
         Loaded += (_, _) => InvokeSplashScreen();
     }
 

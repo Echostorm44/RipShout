@@ -128,11 +128,14 @@ public class RadioService : IDisposable
                     byteOut.Close();
                 }
                 isFrontCut = true;
-                player.Stop();
+
                 CurrentShoutCastStream.StreamTitleChanged -= new StreamTitleChangedHandler(scS_StreamTitleChanged);
             }
             return true;
-        });
+        }).ContinueWith(a =>
+        {
+            player.Stop();
+        }, TaskScheduler.FromCurrentSynchronizationContext());
     }
 
     private void SetCurrentSongDataToStopped()
@@ -165,7 +168,8 @@ public class RadioService : IDisposable
             tag.Tag.Genres = new string[] { trackData.Genre };
             tag.Save();
         }
-        File.Delete(filePath);
+        // TODO turn this back on but make it safer, could still be in use.
+        //File.Delete(filePath);
     }
 
     void scS_StreamTitleChanged(object source, string title, string genre, string bitrate, string audioEncodeType)

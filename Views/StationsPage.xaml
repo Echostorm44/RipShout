@@ -4,6 +4,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:RipShout.Views"
+      xmlns:vms="clr-namespace:RipShout.ViewModels"
       mc:Ignorable="d" 
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       d:DesignHeight="450" d:DesignWidth="800"
@@ -18,9 +19,69 @@
             <ColumnDefinition Width="Auto"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <ui:TextBox Name="txtStationURL" PlaceholderText="Station URL"></ui:TextBox>
-        <ui:Button Name="btnPlayEnteredURL" Content="Play" Grid.Column="1" Margin="15,0" Click="btnPlayEnteredURL_Click"></ui:Button>        
-        <ListView x:Name="lstStations" Grid.Row="1" Grid.ColumnSpan="2">
-            
+        <StackPanel Orientation="Horizontal" Grid.Column="1">
+            <ui:Button Name="btnPlayEnteredURL" Content="Play" Grid.Column="1" Margin="15,0" Click="btnPlayEnteredURL_Click"></ui:Button>
+            <ui:Button Name="not" Content="asdasdasd" Grid.Column="1" Margin="15,0" Command="{Binding Path=PlayChannelCommand}" CommandParameter="{Binding .}"></ui:Button>
+        </StackPanel>
+        
+        <ListView x:Name="lstStations" Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding Channels}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock FontSize="16" Text="{Binding Name}" Grid.Column="1"></TextBlock>
+                        <TextBlock FontSize="16" Text="{Binding Description}" Grid.Column="1" Grid.Row="1"></TextBlock>
+                        <Button Content="Launch" Grid.Column="0" Grid.RowSpan="2" FontSize="16" Padding="10,0"
+                                            Command="{Binding Path=PlayChannelCommand, RelativeSource={RelativeSource AncestorType={x:Type vms:StationsViewModel}} }" 
+                                            CommandParameter="{Binding .}">
+                        </Button>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+            <!--<ListView.View>
+                <GridView x:Name="GridView2">
+                    <GridViewColumn Width="Auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock FontSize="16" Text="{Binding Name}"></TextBlock>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                        <GridViewColumn.Header>
+                            <TextBlock FontSize="16" FontWeight="Bold" Text="Name"></TextBlock>
+                        </GridViewColumn.Header>
+                    </GridViewColumn>
+                    <GridViewColumn Width="Auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock FontSize="16" Text="{Binding Description}"></TextBlock>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                        <GridViewColumn.Header>
+                            <TextBlock FontSize="16" FontWeight="Bold" Text="Description"></TextBlock>
+                        </GridViewColumn.Header>
+                    </GridViewColumn>                    
+                    <GridViewColumn Width="90">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <Button Content="Launch" Grid.Column="8" HorizontalAlignment="Right" FontSize="16" Padding="10,0"
+                                            Command="{Binding Path=PlayChannelCommand, RelativeSource={RelativeSource AncestorType={x:Type vms:StationsViewModel}} }" 
+                                            CommandParameter="{Binding .}">                                        
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>-->
         </ListView>
     </Grid>    
 </ui:UiPage>
