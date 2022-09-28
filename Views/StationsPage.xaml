@@ -7,10 +7,14 @@
       xmlns:vms="clr-namespace:RipShout.ViewModels"
       mc:Ignorable="d" 
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:conv="clr-namespace:RipShout.Converters"
       d:DesignHeight="450" d:DesignWidth="800" Loaded="UiPage_Loaded"
       Title="StationsPage">
+    <ui:UiPage.Resources>
+        <conv:StringLengthToAlignmentConverter x:Key="StringLengthConverter"/>
+    </ui:UiPage.Resources>
     <Grid>
-        <Grid.Background>
+        <Grid.Background>            
             <ImageBrush Opacity="0.6" ImageSource="/Images/DefaultBackdrop.png" Stretch="UniformToFill"/>
         </Grid.Background>
         <Grid.RowDefinitions>
@@ -26,8 +30,35 @@
             <ui:Button Name="btnPlayEnteredURL" Content="Play" Grid.Column="1" Margin="15,0" Click="btnPlayEnteredURL_Click"></ui:Button>
             <ui:Button Name="not" Content="asdasdasd" Grid.Column="1" Margin="15,0" Command="{Binding Path=PlayChannelCommand}" CommandParameter="{Binding .}"></ui:Button>
         </StackPanel>
-        
-        <ListView x:Name="lstStations" Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding Channels}" Margin="0, 15, 0, 0">
+
+        <ScrollViewer  Grid.Row="1" Grid.ColumnSpan="2" >
+            <ItemsControl ItemsSource="{Binding Channels}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Margin="10" Width="190" Height="200" Background="#202020" BorderThickness="0"
+                                Command="{Binding Path=ViewModel.PlayChannelCommand, RelativeSource={RelativeSource AncestorType={x:Type local:StationsPage}} }" 
+                                CommandParameter="{Binding .}">
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock FontSize="13" Text="{Binding Family}" HorizontalAlignment="Center"></TextBlock>
+                                <TextBlock FontSize="16" Text="{Binding Name }" HorizontalAlignment="{Binding Name, Converter={StaticResource StringLengthConverter}}"></TextBlock>
+                                <Image Source="{Binding ImageURL}" Width="190" Height="190">
+                                    <Image.RenderTransform>
+                                    <TranslateTransform x:Name="bgTranslate"/>
+                                    </Image.RenderTransform>
+                                </Image>
+                            </StackPanel>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <ListView x:Name="lstStations" Visibility="Collapsed" Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding Channels}" Margin="0, 15, 0, 0">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid>

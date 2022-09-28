@@ -113,7 +113,6 @@ public static class AudioAddictGetChannelsService
                                 var chan = new ChannelModel();
                                 chan.Name = item.name;
                                 chan.Description = item.description;
-                                chan.ImageURL = item.asset_url;
                                 string topDomain = "com";
                                 if(stat == "di")
                                 {
@@ -124,6 +123,13 @@ public static class AudioAddictGetChannelsService
                                 chan.Family = fam;
                                 chan.ID = GeneralHelpers.SetChannelID(chan);
                                 chan.IsFavorite = favs.Contains(chan.ID);
+                                chan.IsVisible = true;
+                                chan.ImageURL = SettingsIoHelpers.GetChannelCover(chan.ID, fam);
+                                if(string.IsNullOrEmpty(chan.ImageURL))
+                                {
+                                    SettingsIoHelpers.SaveURLChannelCover(chan.ID, "http:" + item.asset_url);
+                                    chan.ImageURL = SettingsIoHelpers.GetChannelCover(chan.ID, fam);
+                                }
                                 results.Add(chan);
                             }
                         }

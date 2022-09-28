@@ -4,9 +4,11 @@ using RipShout.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
@@ -62,20 +64,43 @@ public partial class StationsPage
 
     private async void btnPlayEnteredURL_Click(object sender, RoutedEventArgs e)
     {
-        /*        
-            We'll need a play button, Name, description, url, fav && a type maybe &&  maybe support playlist url too
-            cache stations for session
-            do a now playing row too for each station
-         */
+        //https://www.1.fm/less/style.css
 
-        // These are better
-        //https://api.audioaddict.com/v1/radiotunes/channels
+        //HttpClient client = new HttpClient();
+        //var request = new HttpRequestMessage()
+        //{
+        //    RequestUri = new Uri("https://www.1.fm/less/style.css"), //new Uri("https://www.radiotunes.com/"),
+        //    Method = HttpMethod.Get,
+        //};
 
-        //https://api.audioaddict.com/v1/di/channels
+        //await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ContinueWith((tm) =>
+        //{
+        //    var response = tm.Result;
+        //    var rooo = response.Content.ReadAsStringAsync().Result;
+        //    var breakUp = rooo.Split(".svg-");
+        //    foreach(var line in breakUp)
+        //    {
+        //        var splitLine = line.Split(@"{height:73px;width:72px;background-image:url(data:image/svg+xml,");
+        //        if(splitLine.Length == 2)
+        //        {
+        //            var key = splitLine[0];
+        //            var svg = WebUtility.UrlDecode(splitLine[1]).TrimEnd(")}".ToCharArray());
+        //            var xml = new System.Xml.XmlDocument();
+        //            xml.LoadXml(svg);
+        //            var moo = Svg.SvgDocument.Open(xml);
+        //            var loo = moo.Draw();
+        //            loo.Save(@"c:\temp\" + key + ".jpg");
+        //        }
+        //    }
+        //});
 
-        //https://listen.radiotunes.com/premium/00sdance.pls?listen_key=5c3aae2e95899da95630a7dc 
 
-        //
+        //var xml = new System.Xml.XmlDocument();
+        //xml.LoadXml("");
+        //var moo = Svg.SvgDocument.Open(xml);
+        //var loo = moo.Draw();
+        //loo.Save("");
+
 
         //HttpClient client = new HttpClient();
         //var request = new HttpRequestMessage()
@@ -103,19 +128,6 @@ public partial class StationsPage
         //var discogTrackInfo =  TrackInfoHelpers.GetTrackInfoFromDiscogs("Nirvana", "Polly", "dzlteADaCwkHvvgoxQKhfIlXujJIZJuFxeaWselC");        
         //var artistID = await TrackInfoHelpers.GetArtistIdFromMusicBrainz("Nirvana", "Nevermind");
         //var fanArt = TrackInfoHelpers.GetFanArtFromFanArt(artistID, "a1da18ae7b743cf897c170678b58d746");
-        //https://listen.radiotunes.com/premium_high/00srock.pls?listen_key=5c3aae2e95899da95630a7dc
-
-        //App.MyRadio.StartStreamFromURL(@"https://listen.radiotunes.com/premium_high/00srock.pls?listen_key=5c3aae2e95899da95630a7dc");
-
-
-        //App.MyRadio.StartStreamFromURL(@"https://strm112.1.fm/90s_mobile_mp3?aw_0_req.gdpr=true");
-
-        //App.MyRadio.StartStreamFromURL(@"http://prem1.radiotunes.com:80/the80s?5c3aae2e95899da95630a7dc");
-
-        //recordWorker.RunWorkerAsync(@"http://prem1.radiotunes.com/guitar?5c3aae2e95899da95630a7dc");
-
-        //radio.StartStreamFromURL(@"http://prem1.radiotunes.com/guitar?5c3aae2e95899da95630a7dc");
-
         //var loo = NavigationService;
         //_navigationService.Navigate(typeof(Views.NowPlayingPage));
     }

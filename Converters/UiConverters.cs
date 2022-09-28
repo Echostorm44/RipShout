@@ -26,3 +26,21 @@ public class StringNullOrEmptyToVisibilityConverter : System.Windows.Markup.Mark
         return this;
     }
 }
+
+public class StringLengthToAlignmentConverter : System.Windows.Markup.MarkupExtension, IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    {
+        return value.ToString().Length > 24 ? HorizontalAlignment.Left : HorizontalAlignment.Center;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    {
+        return null;
+    }
+
+    public override object ProvideValue(IServiceProvider serviceProvider)
+    {
+        return this;
+    }
+}

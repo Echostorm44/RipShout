@@ -29,12 +29,17 @@ public partial class App : Application
 {
     public static RadioService? MyRadio { get; set; }
     public static SettingsModel MySettings { get; set; }
+    public static List<ChannelModel> CachedChannelList { get; set; }
+    public static (string listenKey, bool getDI, bool getRt, bool getJazz, bool getRock, bool getZen, bool getClassical, bool getOneFm) CachedChannelListConfig { get; set; }
 
     public App()
     {
         MyRadio = new RadioService();
         MySettings = SettingsIoHelpers.LoadGeneralSettingsFromDisk();
         MySettings.ValueChanged += MySettings_ValueChanged;
+        CachedChannelList = new List<ChannelModel>();
+        CachedChannelListConfig = (MySettings.AudioAddictListenKey, MySettings.ShowDiChannels, MySettings.ShowRadioTunesChannels,
+            MySettings.ShowJazzRadioChannels, MySettings.ShowRockRadioChannels, MySettings.ShowZenRadioChannels, MySettings.ShowClassicalRadioChannels, MySettings.ShowOneFmChannels);
     }
 
     private void MySettings_ValueChanged(object source)
