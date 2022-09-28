@@ -152,6 +152,7 @@ public static class OneFmGetStationsService
                             Directory.CreateDirectory(localFolder);
                         }
                         var fixedBit = SettingsIoHelpers.ResizeImage(loo, 190, 190);
+
                         fixedBit.Save(localFolder + "OneFM" + key + ".jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
                     }
                 }

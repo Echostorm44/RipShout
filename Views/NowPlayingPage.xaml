@@ -24,6 +24,7 @@
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="90"></RowDefinition>
         </Grid.RowDefinitions>
         <Image Source="{Binding CurrentAlbumImagePath}" Grid.Row="1" Height="250" Width="250"                
@@ -35,7 +36,8 @@
             <cc:OutlinedTextBlock Text="{Binding CurrentBytesRead}" FontSize="20" Margin="0,0,10,0"
                                   Fill="GhostWhite" Stroke="Black" StrokeThickness="2"></cc:OutlinedTextBlock>
             <cc:OutlinedTextBlock Text="{Binding CurrentBitrate}" FontSize="20"
-                                  Fill="GhostWhite" Stroke="Black" StrokeThickness="2"></cc:OutlinedTextBlock>
-        </StackPanel> 
+                                  Fill="GhostWhite" Stroke="Black" StrokeThickness="2"></cc:OutlinedTextBlock>            
+        </StackPanel>
+        <Slider Maximum="1" TickFrequency="0.01" TickPlacement="None" Value="{Binding Playa.Volume}" Grid.Row="4" Grid.Column="1" />
     </Grid>    
 </ui:UiPage>
