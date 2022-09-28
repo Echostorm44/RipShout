@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:RipShout"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"    
-    Width="1100"
+    Width="1280"
     Height="650"
     ExtendsContentIntoTitleBar="True"
     WindowBackdropType="Mica"
@@ -53,8 +53,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>                    
-                    <ui:Breadcrumb Grid.Row="0" Margin="0,0,0,12" HorizontalAlignment="Left" VerticalAlignment="Top"
-                        FontSize="24" Navigation="{Binding ElementName=RootNavigation, Mode=OneWay}" />
+                    <!--<ui:Breadcrumb Grid.Row="0" Margin="0,0,0,12" HorizontalAlignment="Left" VerticalAlignment="Top"
+                        FontSize="24" Navigation="{Binding ElementName=RootNavigation, Mode=OneWay}" />-->
                     <Frame x:Name="RootFrame" Grid.Row="1" Margin="0" />
                     <ui:Snackbar x:Name="RootSnackbar" Title="Hello World!" Grid.Row="1" Appearance="Secondary" CloseButtonEnabled="False"
                         Icon="Info24" Message="Remember that the Heat Death of Universe is coming someday" Timeout="2400" />

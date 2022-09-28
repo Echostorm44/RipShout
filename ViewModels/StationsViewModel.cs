@@ -1,5 +1,4 @@
-﻿using NAudio.Wave;
-using RipShout.Helpers;
+﻿using RipShout.Helpers;
 using RipShout.Models;
 using System;
 using System.Collections.Generic;
@@ -16,10 +15,9 @@ namespace RipShout.ViewModels;
 public class StationsViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
-    private ICommand _navigateCommand;
-
     public ObservableCollection<ChannelModel> Channels { get; set; }
     public ICommand PlayChannelCommand { get; private set; }
+    bool StartingUp = false;
 
     public StationsViewModel()
     {
@@ -29,16 +27,37 @@ public class StationsViewModel : INotifyPropertyChanged
 
     public async Task<bool> StartItUp()
     {
+        if(StartingUp)
+        {
+            return false;
+        }
+        StartingUp = true;
         Channels.Clear();
-        var chans = await AudioAddictChannelServices.AudioAddictGetChannelsService.GetChannelsAsync(App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
+        var chans = new List<ChannelModel>();
+        if(App.CachedChannelList.Count != 0 && App.CachedChannelListConfig == (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
+            App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.ShowOneFmChannels))
+        {
+            chans = App.CachedChannelList;
+        }
+        else
+        {
+            chans = await AudioAddictChannelServices.AudioAddictGetChannelsService.GetChannelsAsync(App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
             App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.FavoriteIDs);
+            // Add oneFm to chans
+            var oneFMChans = await OneFmChannelServices.OneFmGetStationsService.GetChannelsAsync(App.MySettings.FavoriteIDs);
+            if(oneFMChans != null)
+            {
+                chans.AddRange(oneFMChans);
+            }
+            App.CachedChannelList = chans;
+            App.CachedChannelListConfig = (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
+            App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.ShowOneFmChannels);
+        }
         foreach(var item in chans)
         {
             Channels.Add(item);
         }
-
-        // TODO Fire1  chans
-
+        StartingUp = false;
         return true;
     }
 
@@ -49,8 +68,6 @@ public class StationsViewModel : INotifyPropertyChanged
             return;
         }
         var url = ((ChannelModel)choice).PrimaryURL;
-
         App.MyRadio.StartStreamFromURL(url);
-        //var selectedAccount = (DaocAccount)choice;
     }
 }

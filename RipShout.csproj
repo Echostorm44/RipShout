@@ -14,6 +14,7 @@
     <None Remove="Images\applicationIcon-256.png" />
     <None Remove="Images\DefaultBackdrop.jpg" />
     <None Remove="Images\DefaultBackdrop.png" />
+    <None Remove="Images\DefaultChannelCover.jpg" />
     <None Remove="Images\geo_icons.png" />
     <None Remove="Images\wpfui.png" />
   </ItemGroup>
@@ -28,6 +29,9 @@
     <Content Include="Images\DefaultBackdrop.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\DefaultChannelCover.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -36,9 +40,10 @@
     <PackageReference Include="MusicBrainzAPI" Version="2.5.0" />
     <PackageReference Include="NAudio" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="RestSharp" Version="108.0.1" />
+    <PackageReference Include="RestSharp" Version="108.0.2" />
+    <PackageReference Include="Svg" Version="3.4.3" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
-    <PackageReference Include="WPF-UI" Version="2.0.2" />
+    <PackageReference Include="WPF-UI" Version="2.0.3" />
   </ItemGroup>
 
   <ItemGroup>
