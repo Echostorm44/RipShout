@@ -108,8 +108,11 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
 
     int currentBackdropIndex = 0;
 
+    public MediaPlayer Playa { get; set; }
+
     public NowPlayingViewModel()
     {
+        Playa = App.MyRadio.MediaPlaya;
         BackDropImages = new ConcurrentDictionary<int, string>();
         DefaultBackDropImagePath = System.IO.Path.Combine(Assembly.GetExecutingAssembly().Location, "/Images/DefaultBackdrop.png");
 

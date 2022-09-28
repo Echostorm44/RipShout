@@ -12,12 +12,14 @@
       Title="StationsPage">
     <ui:UiPage.Resources>
         <conv:StringLengthToAlignmentConverter x:Key="StringLengthConverter"/>
+        <conv:BoolToVisibilityConverter x:Key="BoolVisConverter"/>
     </ui:UiPage.Resources>
     <Grid>
         <Grid.Background>            
             <ImageBrush Opacity="0.6" ImageSource="/Images/DefaultBackdrop.png" Stretch="UniformToFill"/>
         </Grid.Background>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
@@ -28,10 +30,12 @@
         <ui:TextBox Name="txtStationURL" PlaceholderText="Station URL"></ui:TextBox>
         <StackPanel Orientation="Horizontal" Grid.Column="1">
             <ui:Button Name="btnPlayEnteredURL" Content="Play" Grid.Column="1" Margin="15,0" Click="btnPlayEnteredURL_Click"></ui:Button>
-            <ui:Button Name="not" Content="asdasdasd" Grid.Column="1" Margin="15,0" Command="{Binding Path=PlayChannelCommand}" CommandParameter="{Binding .}"></ui:Button>
         </StackPanel>
-
-        <ScrollViewer  Grid.Row="1" Grid.ColumnSpan="2" >
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="10,10,0,0" Orientation="Horizontal">
+            <ui:ToggleSwitch>Favorites</ui:ToggleSwitch>
+            <ui:ToggleSwitch Tag="RT" Checked="ToggleSwitch_Checked" Unchecked="ToggleSwitch_Unchecked">RadioTunes</ui:ToggleSwitch>
+        </StackPanel>
+        <ScrollViewer Grid.Row="2" Grid.ColumnSpan="2" >
             <ItemsControl ItemsSource="{Binding Channels}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -41,15 +45,13 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Button Margin="10" Width="190" Height="200" Background="#202020" BorderThickness="0"
+                                Visibility="{Binding IsVisible, Converter={StaticResource BoolVisConverter}}"
                                 Command="{Binding Path=ViewModel.PlayChannelCommand, RelativeSource={RelativeSource AncestorType={x:Type local:StationsPage}} }" 
                                 CommandParameter="{Binding .}">
                             <StackPanel Orientation="Vertical">
                                 <TextBlock FontSize="13" Text="{Binding Family}" HorizontalAlignment="Center"></TextBlock>
                                 <TextBlock FontSize="16" Text="{Binding Name }" HorizontalAlignment="{Binding Name, Converter={StaticResource StringLengthConverter}}"></TextBlock>
-                                <Image Source="{Binding ImageURL}" Width="190" Height="190">
-                                    <Image.RenderTransform>
-                                    <TranslateTransform x:Name="bgTranslate"/>
-                                    </Image.RenderTransform>
+                                <Image Source="{Binding ImageURL}" Width="150" Height="150">
                                 </Image>
                             </StackPanel>
                         </Button>

@@ -44,3 +44,22 @@ public class StringLengthToAlignmentConverter : System.Windows.Markup.MarkupExte
         return this;
     }
 }
+
+
+public class BoolToVisibilityConverter : System.Windows.Markup.MarkupExtension, IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    {
+        return (bool)value == false ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+    {
+        return null;
+    }
+
+    public override object ProvideValue(IServiceProvider serviceProvider)
+    {
+        return this;
+    }
+}

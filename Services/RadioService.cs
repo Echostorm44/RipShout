@@ -33,7 +33,7 @@ public class RadioService : IDisposable
     public bool Running { get; set; }
     public ObservableCollection<string> SongHistory { get; set; }
     public ConcurrentBag<SongDetailsModel> SongDataHistory { get; set; }
-
+    public MediaPlayer MediaPlaya { get; set; }
     string storePath = @"D:\RipShoutMusic";
     string imageCachePath = @"D:\RipShoutMusic\Images\";
     int currentSongID = 0;
@@ -45,7 +45,6 @@ public class RadioService : IDisposable
     string lastTitle = "";
     bool workSwitch = true;
     SongDetailsModel currentSongDetails;
-    MediaPlayer player;
 
     // TODO add a way to adjust media player volume
 
@@ -55,8 +54,8 @@ public class RadioService : IDisposable
         CurrentShoutCastStream = new ShoutCastStream();
         currentSongDetails = new SongDetailsModel();
         SongDataHistory = new ConcurrentBag<SongDetailsModel>();
-        player = new MediaPlayer();
-        player.MediaEnded += Player_MediaEnded;
+        MediaPlaya = new MediaPlayer();
+        MediaPlaya.MediaEnded += Player_MediaEnded;
         if(!Directory.Exists(storePath))
         {
             Directory.CreateDirectory(storePath);
@@ -74,9 +73,9 @@ public class RadioService : IDisposable
 
     public void StartStreamFromURL(string url)
     {
-        player.Volume = 1;
-        player.Open(new Uri(url));
-        player.Play();
+        MediaPlaya.Volume = 1;
+        MediaPlaya.Open(new Uri(url));
+        MediaPlaya.Play();
         workSwitch = true;
         Task.Run(() =>
         {
@@ -135,7 +134,7 @@ public class RadioService : IDisposable
             return true;
         }).ContinueWith(a =>
         {
-            player.Stop();
+            MediaPlaya.Stop();
         }, TaskScheduler.FromCurrentSynchronizationContext());
     }
 
