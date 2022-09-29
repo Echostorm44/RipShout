@@ -114,4 +114,9 @@ public class SettingsModel : INotifyPropertyChanged
         OnPropertyChanged(propertyName);
         return true;
     }
+
+    public void SaveToFile()
+    {
+        SettingsIoHelpers.SaveGeneralSettingsToDisk(this);
+    }
 }

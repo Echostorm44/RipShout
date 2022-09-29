@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -28,5 +29,9 @@ public partial class NowPlayingPage
         ViewModel = vm;
         this.DataContext = ViewModel;
         InitializeComponent();
+    }
+
+    private void UiPage_Loaded(object sender, RoutedEventArgs e)
+    {
     }
 }

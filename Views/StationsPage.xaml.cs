@@ -59,12 +59,56 @@ public partial class StationsPage
     private void ToggleSwitch_Checked(object sender, RoutedEventArgs e)
     {
         var foo = (ToggleSwitch)e.Source;
-        var loo = foo.Tag;
+        ToggleStationVisiblity(foo, true);
+    }
+
+    private void ToggleStationVisiblity(ToggleSwitch foo, bool isVisible)
+    {
+        var stationFam = Models.StationFamily.None;
+        switch(foo.Tag)
+        {
+            case "DI":
+            {
+                stationFam = Models.StationFamily.DI;
+            }
+                break;
+            case "RT":
+            {
+                stationFam = Models.StationFamily.RadioTunes;
+            }
+                break;
+            case "ZEN":
+            {
+                stationFam = Models.StationFamily.ZenRadio;
+            }
+                break;
+            case "JAZZ":
+            {
+                stationFam = Models.StationFamily.JazzRadio;
+            }
+                break;
+            case "ROCK":
+            {
+                stationFam = Models.StationFamily.RockRadio;
+            }
+                break;
+            case "CLASSICAL":
+            {
+                stationFam = Models.StationFamily.ClassicalRadio;
+            }
+                break;
+            case "1FM":
+            {
+                stationFam = Models.StationFamily.OneFM;
+            }
+                break;
+        }
+
         foreach(var item in ViewModel.Channels)
         {
-            if(item.Family == Models.StationFamily.RadioTunes)
+            if(item.Family == stationFam && !item.IsFavorite)
             {
-                item.IsVisible = true;
+                item.IsVisible = isVisible;
             }
         }
     }
@@ -72,13 +116,6 @@ public partial class StationsPage
     private void ToggleSwitch_Unchecked(object sender, RoutedEventArgs e)
     {
         var foo = (ToggleSwitch)e.Source;
-        var loo = foo.Tag;
-        foreach(var item in ViewModel.Channels)
-        {
-            if(item.Family == Models.StationFamily.RadioTunes)
-            {
-                item.IsVisible = false;
-            }
-        }
+        ToggleStationVisiblity(foo, false);
     }
 }
