@@ -16,13 +16,17 @@ public class StationsViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
     public ObservableCollection<ChannelModel> Channels { get; set; }
+    public SettingsModel Settings { get; set; }
     public ICommand PlayChannelCommand { get; private set; }
+    public ICommand FavoriteChannelCommand { get; private set; }
     bool StartingUp = false;
 
     public StationsViewModel()
     {
+        Settings = App.MySettings;
         Channels = new ObservableCollection<ChannelModel>();
         PlayChannelCommand = new RelayCommand(a => PlayChannel(a));
+        FavoriteChannelCommand = new RelayCommand(a => FavChannel(a));
     }
 
     public async Task<bool> StartItUp()
@@ -53,7 +57,7 @@ public class StationsViewModel : INotifyPropertyChanged
             App.CachedChannelListConfig = (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
             App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.ShowOneFmChannels);
         }
-        foreach(var item in chans)
+        foreach(var item in chans.OrderByDescending(a => a.IsFavorite).ThenBy(a => a.Family))
         {
             Channels.Add(item);
         }
@@ -69,5 +73,26 @@ public class StationsViewModel : INotifyPropertyChanged
         }
         var url = ((ChannelModel)choice).PrimaryURL;
         App.MyRadio.StartStreamFromURL(url);
+        App.MyRadio.MediaPlaya.Volume = 1;
+    }
+
+    void FavChannel(object choice)
+    {
+        if(choice == null)
+        {
+            return;
+        }
+        var id = ((ChannelModel)choice).ID;
+        var prevState = ((ChannelModel)choice).IsFavorite;
+        ((ChannelModel)choice).IsFavorite = !prevState;
+        if(!prevState && !App.MySettings.FavoriteIDs.Contains(id))
+        {
+            App.MySettings.FavoriteIDs.Add(id);
+        }
+        else if(prevState && App.MySettings.FavoriteIDs.Contains(id))
+        {
+            App.MySettings.FavoriteIDs.Remove(id);
+        }
+        App.MySettings.SaveToFile();
     }
 }

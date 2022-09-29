@@ -17,7 +17,21 @@ public class ChannelModel : INotifyPropertyChanged
     public string PrimaryURL { get; set; }
     public string BackupURL { get; set; }
     public StationFamily Family { get; set; }
-    public bool IsFavorite { get; set; }
+    bool isFavorite;
+    public bool IsFavorite
+    {
+        get => isFavorite;
+        set
+        {
+            if (isFavorite == value)
+            {
+                return;
+            }
+
+            isFavorite = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsFavorite)));
+        }
+    }
     bool isVisible;
     public bool IsVisible
     {

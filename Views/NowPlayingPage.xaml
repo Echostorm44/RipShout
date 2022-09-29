@@ -3,7 +3,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:RipShout.Views"
+      xmlns:local="clr-namespace:RipShout.Views" Loaded="UiPage_Loaded"
       mc:Ignorable="d" 
       Style="{StaticResource UiPage}"
       xmlns:cc="clr-namespace:RipShout.CustomControls"
@@ -12,10 +12,10 @@
       Title="NowPlayingPage">
     <Grid>
         <Grid.Background>
-            <ImageBrush Opacity="0.6" ImageSource="{Binding CurrentBackdropImagePath}" Stretch="UniformToFill"/>
+            <ImageBrush Opacity="0.8" ImageSource="{Binding CurrentBackdropImagePath}" Stretch="UniformToFill"/>
         </Grid.Background>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="44"></ColumnDefinition>
+            <ColumnDefinition Width="10"></ColumnDefinition>
             <ColumnDefinition Width="Auto"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
@@ -25,19 +25,22 @@
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition Height="90"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="10"></RowDefinition>
         </Grid.RowDefinitions>
-        <Image Source="{Binding CurrentAlbumImagePath}" Grid.Row="1" Height="250" Width="250"                
+        <Image Source="{Binding CurrentAlbumImagePath}" Grid.Row="1" Height="180" Width="180"                
                HorizontalAlignment="Left" Grid.Column="1">            
         </Image>
-        <cc:OutlinedTextBlock Text="{Binding CurrentSongName}" FontSize="29" Grid.Row="2" Grid.Column="1"
-                              Fill="GhostWhite" Stroke="Black" StrokeThickness="3"></cc:OutlinedTextBlock>
-        <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="1">
-            <cc:OutlinedTextBlock Text="{Binding CurrentBytesRead}" FontSize="20" Margin="0,0,10,0"
+        <cc:OutlinedTextBlock Text="{Binding ArtistName}" FontSize="29" Grid.Row="2" Grid.Column="1" FontWeight="Bold"
+                              Fill="GhostWhite" Stroke="Black" StrokeThickness="2"></cc:OutlinedTextBlock>
+        <cc:OutlinedTextBlock Text="{Binding SongName}" FontSize="29" Grid.Row="3" Grid.Column="1" FontWeight="Bold"
+                              Fill="GhostWhite" Stroke="Black" StrokeThickness="2"></cc:OutlinedTextBlock>
+        <StackPanel Orientation="Horizontal" Grid.Row="4" Grid.Column="1">
+            <cc:OutlinedTextBlock Text="{Binding CurrentBytesRead}" FontSize="19" Margin="0,0,10,0" FontWeight="Bold"
                                   Fill="GhostWhite" Stroke="Black" StrokeThickness="2"></cc:OutlinedTextBlock>
-            <cc:OutlinedTextBlock Text="{Binding CurrentBitrate}" FontSize="20"
+            <cc:OutlinedTextBlock Text="{Binding CurrentBitrate}" FontSize="19" FontWeight="Bold"
                                   Fill="GhostWhite" Stroke="Black" StrokeThickness="2"></cc:OutlinedTextBlock>            
         </StackPanel>
-        <Slider Maximum="1" TickFrequency="0.01" TickPlacement="None" Value="{Binding Playa.Volume}" Grid.Row="4" Grid.Column="1" />
+        <Slider Maximum="1" TickFrequency="0.01" TickPlacement="None" Value="{Binding Playa.Volume}" Grid.Row="5" Grid.Column="1" />
     </Grid>    
 </ui:UiPage>

@@ -62,41 +62,60 @@ public static class AudioAddictGetChannelsService
 
         var prefixes = await GetStreamingPrefixesAsync();
         var stationsToGet = new List<string>();
-        StationFamily fam = StationFamily.DI;
+
         if(getDI)
         {
             stationsToGet.Add("di");
-            fam = StationFamily.DI;
         }
         if(getRt)
         {
             stationsToGet.Add("radiotunes");
-            fam = StationFamily.RadioTunes;
         }
         if(getJazz)
         {
             stationsToGet.Add("jazzradio");
-            fam = StationFamily.JazzRadio;
         }
         if(getRock)
         {
             stationsToGet.Add("rockradio");
-            fam = StationFamily.RockRadio;
         }
         if(getZen)
         {
             stationsToGet.Add("zenradio");
-            fam = StationFamily.ZenRadio;
         }
         if(getClassical)
         {
             stationsToGet.Add("classicalradio");
-            fam = StationFamily.ClassicalRadio;
         }
         using(HttpClient client = new HttpClient())
         {
             foreach(var stat in stationsToGet)
             {
+                StationFamily fam = StationFamily.DI;
+                if(stat == "di")
+                {
+                    fam = StationFamily.DI;
+                }
+                else if(stat == "radiotunes")
+                {
+                    fam = StationFamily.RadioTunes;
+                }
+                else if(stat == "jazzradio")
+                {
+                    fam = StationFamily.JazzRadio;
+                }
+                else if(stat == "rockradio")
+                {
+                    fam = StationFamily.RockRadio;
+                }
+                else if(stat == "zenradio")
+                {
+                    fam = StationFamily.ZenRadio;
+                }
+                else if(stat == "classicalradio")
+                {
+                    fam = StationFamily.ClassicalRadio;
+                }
                 using(var request = new HttpRequestMessage())
                 {
                     request.RequestUri = new Uri($@"https://api.audioaddict.com/v1/{stat}/channels");

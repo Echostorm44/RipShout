@@ -42,7 +42,7 @@ public partial class App : Application
             MySettings.ShowJazzRadioChannels, MySettings.ShowRockRadioChannels, MySettings.ShowZenRadioChannels, MySettings.ShowClassicalRadioChannels, MySettings.ShowOneFmChannels);
     }
 
-    private void MySettings_ValueChanged(object source)
+    public void MySettings_ValueChanged(object source)
     {
         SettingsIoHelpers.SaveGeneralSettingsToDisk((SettingsModel)source);
     }

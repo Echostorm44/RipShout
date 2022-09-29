@@ -33,20 +33,6 @@ public class ShoutCastStream : Stream
 
     public async Task<bool> StartUp(string url)
     {
-        //HttpWebResponse response;
-        //HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
-        //request.Headers.Clear();
-        //request.Headers.Add("Icy-MetaData", "1");
-        //request.KeepAlive = false;
-        //request.UserAgent = "VLC media player";
-
-        //response = (HttpWebResponse)request.GetResponse();
-        //metaInt = int.Parse(response.Headers["Icy-MetaInt"]);
-        //receivedBytes = 0;
-
-        //netStream = response.GetResponseStream();
-        //return true;
-
         // Check for playlist url
         if(url.Contains(".pls"))
         {
@@ -54,7 +40,6 @@ public class ShoutCastStream : Stream
             //@"((http|ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?)",
             //    "<a target='_blank' href='$1'>$1</a>");
         }
-
 
         HttpClient client = new HttpClient();
         var request = new HttpRequestMessage()

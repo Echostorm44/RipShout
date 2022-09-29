@@ -38,7 +38,7 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
         }
     }
     string currentSongName = "";
-    public string CurrentSongName
+    public string CurrentArtistAndSongNames
     {
         get => currentSongName;
         set
@@ -49,7 +49,7 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
             }
 
             currentSongName = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentSongName)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentArtistAndSongNames)));
         }
     }
     string currentBitrate = "";
@@ -69,7 +69,36 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
     }
     public ConcurrentDictionary<int, string> BackDropImages { get; set; }
     public string DefaultBackDropImagePath { get; set; }
+    string songName;
+    public string SongName
+    {
+        get => songName;
+        set
+        {
+            if(songName == value)
+            {
+                return;
+            }
 
+            songName = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SongName)));
+        }
+    }
+    string artistName;
+    public string ArtistName
+    {
+        get => artistName;
+        set
+        {
+            if(artistName == value)
+            {
+                return;
+            }
+
+            artistName = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ArtistName)));
+        }
+    }
     Timer imageTimer;
     bool albumArtLoaded = false;
     bool backdropsLoaded = false;
@@ -123,13 +152,15 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
         WeakReferenceMessenger.Default.Register<CurrentStreamStatsChangedMessage>(this, (r, m) =>
         {
             var incomingSongName = m.Value.SongArtistCombined;
-            if(CurrentSongName != incomingSongName)
+            if(CurrentArtistAndSongNames != incomingSongName)
             {
                 // Track has changed, 
                 albumArtLoaded = false;
                 backdropsLoaded = false;
             }
-            CurrentSongName = incomingSongName;
+            CurrentArtistAndSongNames = incomingSongName;
+            SongName = m.Value.SongName?.Trim();
+            ArtistName = m.Value.ArtistName?.Trim();
             CurrentBytesRead = GeneralHelpers.GetHumanReadableFileSize(m.Value.BytesRead);
             CurrentBitrate = "@ " + m.Value.Bitrate + "k";
             // Handle the message here, with r being the recipient and m being the
