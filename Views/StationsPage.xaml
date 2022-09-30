@@ -9,7 +9,7 @@
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       xmlns:conv="clr-namespace:RipShout.Converters"
            xmlns:ctls="clr-namespace:RipShout.CustomControls"
-      d:DesignHeight="450" d:DesignWidth="800" Loaded="UiPage_Loaded"
+      d:DesignHeight="450" d:DesignWidth="500" Loaded="UiPage_Loaded"
       Title="StationsPage">
     <ui:UiPage.Resources>
         <conv:StringLengthToAlignmentConverter x:Key="StringLengthConverter"/>
@@ -91,65 +91,5 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
-
-        <ListView x:Name="lstStations" Visibility="Collapsed" Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding Channels}" Margin="0, 15, 0, 0">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"></RowDefinition>
-                            <RowDefinition Height="Auto"></RowDefinition>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock FontSize="16" Text="{Binding Name}" Grid.Column="1"></TextBlock>
-                        <TextBlock FontSize="16" Text="{Binding Description}" Grid.Column="1" Grid.Row="1"></TextBlock>
-                        <ui:Button Icon="Play24" Grid.Column="0" Grid.RowSpan="2" FontSize="16" Padding="10" Margin="0,0,15,0"
-                                            Command="{Binding Path=ViewModel.PlayChannelCommand, RelativeSource={RelativeSource AncestorType={x:Type local:StationsPage}} }" 
-                                            CommandParameter="{Binding .}">
-                        </ui:Button>
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-            <!--<ListView.View>
-                <GridView x:Name="GridView2">
-                    <GridViewColumn Width="Auto">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock FontSize="16" Text="{Binding Name}"></TextBlock>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                        <GridViewColumn.Header>
-                            <TextBlock FontSize="16" FontWeight="Bold" Text="Name"></TextBlock>
-                        </GridViewColumn.Header>
-                    </GridViewColumn>
-                    <GridViewColumn Width="Auto">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock FontSize="16" Text="{Binding Description}"></TextBlock>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                        <GridViewColumn.Header>
-                            <TextBlock FontSize="16" FontWeight="Bold" Text="Description"></TextBlock>
-                        </GridViewColumn.Header>
-                    </GridViewColumn>                    
-                    <GridViewColumn Width="90">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel>
-                                    <Button Content="Launch" Grid.Column="8" HorizontalAlignment="Right" FontSize="16" Padding="10,0"
-                                            Command="{Binding Path=PlayChannelCommand, RelativeSource={RelativeSource AncestorType={x:Type vms:StationsViewModel}} }" 
-                                            CommandParameter="{Binding .}">                                        
-                                    </Button>
-                                </StackPanel>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                </GridView>
-            </ListView.View>-->
-        </ListView>
     </Grid>    
 </ui:UiPage>

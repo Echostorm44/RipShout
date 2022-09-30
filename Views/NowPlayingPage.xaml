@@ -41,6 +41,6 @@
             <cc:OutlinedTextBlock Text="{Binding CurrentBitrate}" FontSize="19" FontWeight="Bold"
                                   Fill="GhostWhite" Stroke="Black" StrokeThickness="2"></cc:OutlinedTextBlock>            
         </StackPanel>
-        <Slider Maximum="1" TickFrequency="0.01" TickPlacement="None" Value="{Binding Playa.Volume}" Grid.Row="5" Grid.Column="1" />
+        <Slider Maximum="1" TickFrequency="0.01" TickPlacement="None" Value="{Binding PlayerVolume, Mode=TwoWay}" Grid.Row="5" Grid.Column="1" />
     </Grid>    
 </ui:UiPage>

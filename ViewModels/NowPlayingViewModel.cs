@@ -138,10 +138,27 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
     int currentBackdropIndex = 0;
 
     public MediaPlayer Playa { get; set; }
+    double playerVolume;
+    public double PlayerVolume
+    {
+        get => playerVolume;
+        set
+        {
+            if(playerVolume == value)
+            {
+                return;
+            }
+            App.MySettings.PlayerVolume = value;
+            App.MyRadio.MediaPlaya.Volume = value;
+            playerVolume = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PlayerVolume)));
+        }
+    }
 
     public NowPlayingViewModel()
     {
         Playa = App.MyRadio.MediaPlaya;
+        PlayerVolume = App.MySettings.PlayerVolume;
         BackDropImages = new ConcurrentDictionary<int, string>();
         DefaultBackDropImagePath = System.IO.Path.Combine(Assembly.GetExecutingAssembly().Location, "/Images/DefaultBackdrop.png");
 

@@ -48,14 +48,12 @@ public class RadioService : IDisposable
     SongDetailsModel currentSongDetails;
     Progress<bool> prog = new Progress<bool>();
 
-    // TODO add a way to adjust media player volume
-
     public RadioService()
     {
         CurrentShoutCastStream = new ShoutCastStream();
         currentSongDetails = new SongDetailsModel();
         MediaPlaya = new MediaPlayer();
-        MediaPlaya.Volume = 1;
+        MediaPlaya.Volume = App.MySettings.PlayerVolume;
         Running = false;
         if(!Directory.Exists(storePath))
         {
@@ -63,12 +61,10 @@ public class RadioService : IDisposable
         }
     }
 
-
     public void StopStreaming()
     {
         workSwitch = false;
     }
-
 
     public void StartStreamFromURL(string url)
     {
@@ -79,8 +75,7 @@ public class RadioService : IDisposable
         }
         CurrentShoutCastStream = new ShoutCastStream();
         MediaPlaya.Stop();
-        MediaPlaya.Close();
-        //MediaPlaya = new MediaPlayer();        
+        MediaPlaya.Close();     
         MediaPlaya.Open(new Uri(url));
         MediaPlaya.Play();
         workSwitch = true;
