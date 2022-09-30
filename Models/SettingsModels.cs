@@ -22,6 +22,7 @@ public class SettingsModel : INotifyPropertyChanged
         showRadioTunesChannels = false;
         showRockRadioChannels = false;
         showZenRadioChannels = false;
+        playerVolume = 1;
         FavoriteIDs = new List<string>();
     }
 
@@ -86,6 +87,12 @@ public class SettingsModel : INotifyPropertyChanged
         get => albumImageCacheFolder;
         set => SetField(ref albumImageCacheFolder, value);
     }
+    public int LastWindowHeight { get; set; }
+    public int LastWindowWidth { get; set; }
+    public int LastWindowX { get; set; }
+    public int LastWindowY { get; set; }
+    double playerVolume;
+    public double PlayerVolume { get => playerVolume; set => SetField(ref playerVolume, value); }
 
     public delegate void ValueChangedHander(object source);
     public event ValueChangedHander? ValueChanged;

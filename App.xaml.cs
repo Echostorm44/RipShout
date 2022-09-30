@@ -31,11 +31,12 @@ public partial class App : Application
     public static SettingsModel MySettings { get; set; }
     public static List<ChannelModel> CachedChannelList { get; set; }
     public static (string listenKey, bool getDI, bool getRt, bool getJazz, bool getRock, bool getZen, bool getClassical, bool getOneFm) CachedChannelListConfig { get; set; }
+    Debouncer bounce = new Debouncer(500);
 
     public App()
     {
-        MyRadio = new RadioService();
         MySettings = SettingsIoHelpers.LoadGeneralSettingsFromDisk();
+        MyRadio = new RadioService();
         MySettings.ValueChanged += MySettings_ValueChanged;
         CachedChannelList = new List<ChannelModel>();
         CachedChannelListConfig = (MySettings.AudioAddictListenKey, MySettings.ShowDiChannels, MySettings.ShowRadioTunesChannels,
@@ -44,7 +45,10 @@ public partial class App : Application
 
     public void MySettings_ValueChanged(object source)
     {
-        SettingsIoHelpers.SaveGeneralSettingsToDisk((SettingsModel)source);
+        bounce.Debounce(() =>
+        {
+            SettingsIoHelpers.SaveGeneralSettingsToDisk((SettingsModel)source);
+        });
     }
 
     private static readonly IHost _host = Host
@@ -55,19 +59,11 @@ public partial class App : Application
     })
     .ConfigureServices((context, services) =>
     {
-        // App Host
         services.AddHostedService<ApplicationHostService>();
-
-        // Theme manipulation
         services.AddSingleton<IThemeService, ThemeService>();
-
         services.AddSingleton<ISnackbarService, SnackbarService>();
-        // Tray icon
-        //services.AddSingleton<INotifyIconService, CustomNotifyIconService>();
-
-        // Page resolver service
         services.AddSingleton<IPageService, PageService>();
-        // Service containing navigation, same as INavigationWindow... but without window
+
         services.AddSingleton<INavigationService, NavigationService>();
 
         services.AddScoped<INavigationWindow, MainWindow>();
