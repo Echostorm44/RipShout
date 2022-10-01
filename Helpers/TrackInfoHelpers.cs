@@ -48,9 +48,9 @@ public static class TrackInfoHelpers
                 return sorted.First();
             }
         }
-        catch(Exception)
+        catch(Exception ex)
         {
-            // TODO do something with this
+            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
         }
         return null;
     }
@@ -75,7 +75,7 @@ public static class TrackInfoHelpers
                 }
                 var albs = myDeserializedClass.results.OrderBy(a => a.releaseDate);
                 foreach(var item in albs)
-                {// TODO we're going to have to fuzzy match this, it's too much for it to be dead on.
+                {// we're going to have to fuzzy match this, it's too much for it to be dead on.
                     if(Levenshtein.GetRatioPercent(item.artistName, artist) > 30 &&
                         Levenshtein.GetRatioPercent(item.trackName, track) > 30 &&
                         Levenshtein.GetRatioPercent(item.trackCensoredName, track) > 30)
@@ -85,9 +85,9 @@ public static class TrackInfoHelpers
                 }
             }
         }
-        catch(Exception)
+        catch(Exception ex)
         {
-            // TODO do something with this
+            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
         }
         return null;
     }
@@ -120,7 +120,7 @@ public static class TrackInfoHelpers
         }
         catch(Exception ex)
         {
-            // TODO
+            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
         }
         return null;
     }
@@ -140,7 +140,7 @@ public static class TrackInfoHelpers
         }
         catch(Exception ex)
         {
-            // TODO
+            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
         }
         return null;
     }
@@ -165,9 +165,9 @@ public static class TrackInfoHelpers
                 return myDeserializedClass;
             }
         }
-        catch(Exception)
+        catch(Exception ex)
         {
-            // TODO do something with this
+            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
         }
         return null;
     }
@@ -322,12 +322,6 @@ public sealed class DiscogsUserData
     public bool in_wantlist { get; set; }
     public bool in_collection { get; set; }
 }
-
-//public class F7568cc74c093a47Abbc593e7aaac7d6
-//{
-//    public List<Albumcover> albumcover { get; set; }
-//    public List<Cdart> cdart { get; set; }
-//}
 
 public class FanArtHdmusiclogo
 {

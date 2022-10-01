@@ -20,21 +20,28 @@ public static class SettingsIoHelpers
         var destRect = new Rectangle(0, 0, width, height);
         var destImage = new Bitmap(width, height);
 
-        destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
-
-        using(var graphics = Graphics.FromImage(destImage))
+        try
         {
-            graphics.CompositingMode = CompositingMode.SourceCopy;
-            graphics.CompositingQuality = CompositingQuality.HighQuality;
-            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            graphics.SmoothingMode = SmoothingMode.HighQuality;
-            graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
 
-            using(var wrapMode = new ImageAttributes())
+            using(var graphics = Graphics.FromImage(destImage))
             {
-                wrapMode.SetWrapMode(WrapMode.TileFlipXY);
-                graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                using(var wrapMode = new ImageAttributes())
+                {
+                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
+                }
             }
+        }
+        catch(Exception ex)
+        {
+            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
         }
 
         return destImage;

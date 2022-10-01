@@ -1,6 +1,7 @@
 ﻿using RipShout.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -33,5 +34,12 @@ public partial class NowPlayingPage
 
     private void UiPage_Loaded(object sender, RoutedEventArgs e)
     {
+    }
+
+    private void Mp3Folder_Clicked(object sender, RoutedEventArgs e)
+    {
+        //Process.Start(App.MySettings.SaveFinalMusicToFolder);
+        //Process.Start("explorer", App.MySettings.SaveFinalMusicToFolder);
+        Process.Start(new ProcessStartInfo(App.MySettings.SaveFinalMusicToFolder) { UseShellExecute = true });
     }
 }
