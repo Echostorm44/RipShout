@@ -27,6 +27,7 @@
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"></ColumnDefinition>
@@ -121,6 +122,14 @@
                     <TextBlock Text="{Binding MySettings.AlbumImageCacheFolder}"></TextBlock>
                 </StackPanel>
             </ui:CardAction>
+            <ui:CardControl Icon="BookTemplate20" Grid.Row="12">
+                <ui:CardControl.Header>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Enable Logging"></TextBlock>
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{ Binding MySettings.LoggingOn }" ></ui:ToggleSwitch>
+            </ui:CardControl>
         </Grid>
     </ScrollViewer>
 </ui:UiPage>

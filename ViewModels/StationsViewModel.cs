@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using Wpf.Ui.Common.Interfaces;
+using Wpf.Ui.Mvvm.Contracts;
 
 namespace RipShout.ViewModels;
 
@@ -21,12 +23,15 @@ public class StationsViewModel : INotifyPropertyChanged
     public ICommand FavoriteChannelCommand { get; private set; }
     bool StartingUp = false;
 
-    public StationsViewModel()
+    private readonly INavigationService _navigationService;
+
+    public StationsViewModel(INavigationService navigationService)
     {
         Settings = App.MySettings;
         Channels = new ObservableCollection<ChannelModel>();
         PlayChannelCommand = new RelayCommand(a => PlayChannel(a));
         FavoriteChannelCommand = new RelayCommand(a => FavChannel(a));
+        _navigationService = navigationService;
     }
 
     public async Task<bool> StartItUp()
@@ -73,7 +78,7 @@ public class StationsViewModel : INotifyPropertyChanged
         }
         var url = ((ChannelModel)choice).PrimaryURL;
         App.MyRadio.StartStreamFromURL(url);
-        App.MyRadio.MediaPlaya.Volume = 1;
+        _navigationService.Navigate(typeof(Views.NowPlayingPage));
     }
 
     void FavChannel(object choice)

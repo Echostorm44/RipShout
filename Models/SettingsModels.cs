@@ -24,8 +24,15 @@ public class SettingsModel : INotifyPropertyChanged
         showZenRadioChannels = false;
         playerVolume = 1;
         FavoriteIDs = new List<string>();
+        LoggingOn = false;
     }
 
+    bool loggingOn;
+    public bool LoggingOn
+    {
+        get => loggingOn;
+        set => SetField(ref loggingOn, value);
+    }
     string audioAddictListenKey;
     public string AudioAddictListenKey
     {

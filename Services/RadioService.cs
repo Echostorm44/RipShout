@@ -35,8 +35,6 @@ public class RadioService : IDisposable
     public bool SaveTrackRunning { get; set; }
     public bool GetTrackDataRunning { get; set; }
     public MediaPlayer MediaPlaya { get; set; }
-    string storePath = @"D:\RipShoutMusic";
-    string imageCachePath = @"D:\RipShoutMusic\Images\";
     int currentSongID = 0;
     Stream? byteOut;
     byte[] buffer = new byte[512];
@@ -55,10 +53,6 @@ public class RadioService : IDisposable
         MediaPlaya = new MediaPlayer();
         MediaPlaya.Volume = App.MySettings.PlayerVolume;
         Running = false;
-        if(!Directory.Exists(storePath))
-        {
-            Directory.CreateDirectory(storePath);
-        }
     }
 
     public void StopStreaming()
@@ -75,7 +69,8 @@ public class RadioService : IDisposable
         }
         CurrentShoutCastStream = new ShoutCastStream();
         MediaPlaya.Stop();
-        MediaPlaya.Close();     
+        MediaPlaya.Close();
+        MediaPlaya.Volume = App.MySettings.PlayerVolume;
         MediaPlaya.Open(new Uri(url));
         MediaPlaya.Play();
         workSwitch = true;
@@ -88,11 +83,11 @@ public class RadioService : IDisposable
                 Task<bool> startUp = CurrentShoutCastStream.StartUp(url);
                 var foo = startUp.Result;
                 CurrentShoutCastStream.StreamTitleChanged += new StreamTitleChangedHandler(scS_StreamTitleChanged);
-                if(!Directory.Exists(storePath + @"\" + Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\"))
+                if(!Directory.Exists(App.MySettings.SaveTempMusicToFolder + @"\" + Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\"))
                 {
-                    Directory.CreateDirectory(storePath + @"\" + Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\");
+                    Directory.CreateDirectory(App.MySettings.SaveTempMusicToFolder + @"\" + Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\");
                 }
-                byteOut = new FileStream(storePath + @"\" +
+                byteOut = new FileStream(App.MySettings.SaveTempMusicToFolder + @"\" +
                     Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\" + @"[Front-Cut]" +
                     CurrentShoutCastStream.StreamTitle + ".mp3", FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
 
@@ -121,7 +116,7 @@ public class RadioService : IDisposable
             }
             catch(Exception ex)
             {
-                System.Windows.MessageBox.Show("Error:" + ex.ToString());
+                GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
                 workSwitch = false;
             }
             finally
@@ -150,12 +145,12 @@ public class RadioService : IDisposable
         SaveTrackRunning = true;
         try
         {
-            var folderPath = storePath + @"\Final\" + trackData.Genre + @"\";
+            var folderPath = Path.Combine(App.MySettings.SaveFinalMusicToFolder, trackData.Genre);
             if(!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
-            string mp3Path = CheckPathForDupesAndIncIfNeeded(storePath + @"\Final\" + trackData.Genre + @"\" + trackData.SongName + ".mp3");
+            string mp3Path = CheckPathForDupesAndIncIfNeeded(folderPath + "\\" + trackData.SongName + ".mp3");
 
             using(var reader = new MediaFoundationReader(filePath))
             {
@@ -164,22 +159,39 @@ public class RadioService : IDisposable
                 /* convert:
                     command: ffmpeg -i $source -y -vn -aq 2 $dest
                     extension: mp3 */
-                var tag = TagLib.File.Create(mp3Path);
-                tag.Tag.AlbumArtists = new string[] { trackData.ArtistName };
-                tag.Tag.Performers = new string[] { trackData.ArtistName };
-                tag.Tag.Title = trackData.SongName;
-                tag.Tag.Genres = new string[] { trackData.Genre };
-                tag.Save();
+                var finalMP3 = TagLib.File.Create(mp3Path);
+                finalMP3.Tag.AlbumArtists = new string[] { trackData.ArtistName };
+                finalMP3.Tag.Performers = new string[] { trackData.ArtistName };
+                finalMP3.Tag.Title = trackData.SongName;
+                finalMP3.Tag.Album = trackData.AlbumName;
+                finalMP3.Tag.Genres = new string[] { trackData.Genre };
+                if(!string.IsNullOrEmpty(trackData.PathToAlbumArt))
+                {
+                    var picture = new TagLib.Picture(trackData.PathToAlbumArt);
+                    picture.Type = TagLib.PictureType.FrontCover;
+                    picture.MimeType = "image/jpeg";
+                    finalMP3.Tag.Pictures = new TagLib.IPicture[] { picture };
+                }
+                if(uint.TryParse(trackData.ReleaseYear, out var trackYear))
+                {
+                    finalMP3.Tag.Year = trackYear;
+                }
+                if(uint.TryParse(trackData.TrackNumber, out var trackNumber))
+                {
+                    finalMP3.Tag.Track = trackNumber;
+                }
+
+                finalMP3.Save();
                 int deleteAttempts = 0;
                 while(deleteAttempts <= 10)
                 {
                     try
                     {
-                        File.Delete(filePath);
+                        System.IO.File.Delete(filePath);
                     }
                     catch(Exception ex)
                     {
-                        var roo = ex;
+                        GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
                     }
                     Thread.Sleep(100);
                     deleteAttempts++;
@@ -188,7 +200,7 @@ public class RadioService : IDisposable
         }
         catch(Exception ex)
         {
-            var foo = ex;
+            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
         }
         finally
         {
@@ -233,7 +245,7 @@ public class RadioService : IDisposable
 
             if(isFrontCut)
             {
-                workingPath = GetSongSavePath(storePath, cleanTitle, cleanGenre, true);
+                workingPath = GetSongSavePath(App.MySettings.SaveTempMusicToFolder, cleanTitle, cleanGenre, true);
                 byteOut = new FileStream(workingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
                 isFrontCut = false;
                 if(cleanTitle.Length > 0)
@@ -243,7 +255,7 @@ public class RadioService : IDisposable
             }
             else
             {
-                string newPath = GetSongSavePath(storePath, cleanTitle, cleanGenre, false);
+                string newPath = GetSongSavePath(App.MySettings.SaveTempMusicToFolder, cleanTitle, cleanGenre, false);
                 byteOut = new FileStream(newPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
                 workingPath = newPath;
                 lastTitle = cleanTitle;
@@ -273,7 +285,7 @@ public class RadioService : IDisposable
         }
         catch(Exception ex)
         {
-            System.Windows.MessageBox.Show(cleanTitle + ex.ToString());
+            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
         }
         finally
         {
@@ -314,8 +326,9 @@ public class RadioService : IDisposable
             {
                 artistID = TrackInfoHelpers.GetArtistIdFromMusicBrainz(currentModel.ArtistName, currentModel.AlbumName).Result;
             }
-            else
+            if(string.IsNullOrEmpty(artistID))
             {
+                GeneralHelpers.WriteLogEntry(currentModel.ArtistName + "\r\n" + currentModel.SongName, GeneralHelpers.LogFileType.AlbumLookupFailure);
                 artistID = TrackInfoHelpers.GetArtistIdFromMusicBrainz(currentModel.ArtistName).Result;
             }
             currentModel.HasArtistImagesInLocalFolder = false;
@@ -324,7 +337,7 @@ public class RadioService : IDisposable
                 var fanArt = TrackInfoHelpers.GetFanArtFromFanArt(artistID, "a1da18ae7b743cf897c170678b58d746");
                 if(fanArt != null && fanArt.artistbackground.Count > 0)
                 {
-                    string backdropPath = imageCachePath + artistID;
+                    string backdropPath = App.MySettings.ArtistImageCacheFolder + "\\" + artistID;
                     if(!Directory.Exists(backdropPath))
                     {
                         Directory.CreateDirectory(backdropPath);
@@ -357,37 +370,48 @@ public class RadioService : IDisposable
                     }
                 }
             }
+            else
+            {
+                GeneralHelpers.WriteLogEntry(currentModel.ArtistName, GeneralHelpers.LogFileType.ArtistLookupFailure);
+            }
             currentModel.ArtLoaded = true;
         }
         catch(Exception ex)
         {
-            var looo = ex;
+            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
         }
         GetTrackDataRunning = false;
     }
 
     void SaveAlbumArt(string downloadUrl, ref SongDetailsModel currentModel)
     {
-        string albumArtPath = imageCachePath + "AlbumArt\\"
-                + GeneralHelpers.GetSHA256HashOfString(currentModel.ArtistName + currentModel.AlbumName);
-        string albumArtFilePath = albumArtPath + "\\albumArt.jpg";
+        try
+        {
+            string albumArtPath = App.MySettings.AlbumImageCacheFolder + "\\"
+                    + GeneralHelpers.GetSHA256HashOfString(currentModel.ArtistName + currentModel.AlbumName);
+            string albumArtFilePath = albumArtPath + "\\albumArt.jpg";
 
-        if(File.Exists(albumArtFilePath))
-        {
+            if(File.Exists(albumArtFilePath))
+            {
+                currentModel.PathToAlbumArt = albumArtFilePath;
+                return;
+            }
+            Directory.CreateDirectory(albumArtPath);
+            var client = new RestClient(downloadUrl);
+            var request = new RestRequest();
+            request.Method = Method.Get;
+            request.Timeout = -1;
+            var response = client.DownloadData(request);
+            if(response != null && response.Length > 0)
+            {
+                File.WriteAllBytes(albumArtFilePath, response);
+            }
             currentModel.PathToAlbumArt = albumArtFilePath;
-            return;
         }
-        Directory.CreateDirectory(albumArtPath);
-        var client = new RestClient(downloadUrl);
-        var request = new RestRequest();
-        request.Method = Method.Get;
-        request.Timeout = -1;
-        var response = client.DownloadData(request);
-        if(response != null && response.Length > 0)
+        catch(Exception ex)
         {
-            File.WriteAllBytes(albumArtFilePath, response);
+            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
         }
-        currentModel.PathToAlbumArt = albumArtFilePath;
     }
 
 
@@ -399,28 +423,35 @@ public class RadioService : IDisposable
 
     public static string CheckPathForDupesAndIncIfNeeded(string filePath)
     {
-        if(File.Exists(filePath))
+        try
         {
-            string folderPath = Path.GetDirectoryName(filePath);
-            string fileName = Path.GetFileNameWithoutExtension(filePath);
-            string fileExtension = Path.GetExtension(filePath);
-            int number = 1;
-
-            Match regex = Regex.Match(fileName, @"^(.+)\((\d+)\)$");
-
-            if(regex.Success)
+            if(File.Exists(filePath))
             {
-                fileName = regex.Groups[1].Value;
-                number = int.Parse(regex.Groups[2].Value);
-            }
+                string folderPath = Path.GetDirectoryName(filePath);
+                string fileName = Path.GetFileNameWithoutExtension(filePath);
+                string fileExtension = Path.GetExtension(filePath);
+                int number = 1;
 
-            do
-            {
-                number++;
-                string newFileName = $"{fileName}({number}){fileExtension}";
-                filePath = Path.Combine(folderPath, newFileName);
+                Match regex = Regex.Match(fileName, @"^(.+)\((\d+)\)$");
+
+                if(regex.Success)
+                {
+                    fileName = regex.Groups[1].Value;
+                    number = int.Parse(regex.Groups[2].Value);
+                }
+
+                do
+                {
+                    number++;
+                    string newFileName = $"{fileName}({number}){fileExtension}";
+                    filePath = Path.Combine(folderPath, newFileName);
+                }
+                while (File.Exists(filePath));
             }
-            while (File.Exists(filePath));
+        }
+        catch(Exception ex)
+        {
+            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
         }
         return filePath;
     }

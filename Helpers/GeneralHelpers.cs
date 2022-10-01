@@ -1,6 +1,7 @@
 ﻿using RipShout.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -67,5 +68,31 @@ public static class GeneralHelpers
             sb.Append(b.ToString("X2"));
         }
         return sb.ToString();
+    }
+
+
+    public enum LogFileType
+    {
+        Exception,
+        ArtistLookupFailure,
+        AlbumLookupFailure,
+    }
+
+    public static void WriteLogEntry(string entry, LogFileType logType)
+    {
+        if(!App.MySettings.LoggingOn)
+        {
+            return;
+        }
+        string logFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Ripshout\\Logs\\";
+        if(!Directory.Exists(logFolder))
+        {
+            Directory.CreateDirectory(logFolder);
+        }
+        var fileName = "log-" + logType.ToString() + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss-ff") + ".txt";
+        using(TextWriter tw = new StreamWriter(logFolder + fileName))
+        {
+            tw.Write(entry);
+        }
     }
 }

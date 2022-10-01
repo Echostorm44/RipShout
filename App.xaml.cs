@@ -106,6 +106,10 @@ public partial class App : Application
     /// </summary>
     private async void OnExit(object sender, ExitEventArgs e)
     {
+        foreach(var doomedFolder in Directory.EnumerateDirectories(MySettings.SaveTempMusicToFolder))
+        {
+            Directory.Delete(doomedFolder, true);
+        }
         await _host.StopAsync();
 
         _host.Dispose();

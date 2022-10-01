@@ -12,7 +12,6 @@ namespace RipShout.Services;
 
 
 
-
 public delegate void StreamTitleChangedHandler(object source, string title, string genre, string bitrate, string extension);
 
 public class ShoutCastStream : Stream
