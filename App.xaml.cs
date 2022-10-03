@@ -108,7 +108,14 @@ public partial class App : Application
     {
         foreach(var doomedFolder in Directory.EnumerateDirectories(MySettings.SaveTempMusicToFolder))
         {
-            Directory.Delete(doomedFolder, true);
+            try
+            {// TODO this needs a beat for the stream to close || it won't be able to access
+                Directory.Delete(doomedFolder, true);
+            }
+            catch(Exception ex)
+            {
+                GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
+            }
         }
         await _host.StopAsync();
 

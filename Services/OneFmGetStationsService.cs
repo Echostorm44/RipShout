@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,13 +48,10 @@ public static class OneFmGetStationsService
                             chan.ID = GeneralHelpers.SetChannelID(chan);
                             chan.IsFavorite = favs.Contains(chan.ID);
                             chan.IsVisible = true;
-
                             var imageURL = SettingsIoHelpers.GetChannelCover(item.stid, StationFamily.OneFM);
                             if(string.IsNullOrEmpty(imageURL))
                             {
-                                // reach out && download the covers
-                                var gotEm = DownloadChannelImagesToCache().Result;
-                                imageURL = SettingsIoHelpers.GetChannelCover(item.stid, StationFamily.OneFM);
+                                imageURL = System.IO.Path.Combine(Assembly.GetExecutingAssembly().Location, "/Images/OneFMDefault.png");
                             }
                             chan.ImageURL = imageURL;
                             channels.Add(chan);
@@ -63,102 +61,6 @@ public static class OneFmGetStationsService
             }
         }
         return channels;
-    }
-
-    static async Task<bool> DownloadChannelImagesToCache()
-    {
-        HttpClient client = new HttpClient();
-        var request = new HttpRequestMessage()
-        {
-            RequestUri = new Uri("https://www.1.fm/less/style.css"), //new Uri("https://www.radiotunes.com/"),
-            Method = HttpMethod.Get,
-        };
-
-        await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ContinueWith((tm) =>
-        {
-            var response = tm.Result;
-            var rooo = response.Content.ReadAsStringAsync().Result;
-            var breakUp = rooo.Split(".svg-");
-            foreach(var line in breakUp)
-            {
-                if(line.Contains(";base64,"))
-                {
-                    var splitLine = line.Split(@"background-image:url(data:image/svg+xml;base64,");
-                    if(splitLine.Length == 2)
-                    {
-                        var tempkey = splitLine[0];
-                        var splitOnForKey = "{height:";
-                        if(!tempkey.Contains(splitOnForKey))
-                        {
-                            splitOnForKey = "{";
-                        }
-                        var splitTempKey = tempkey.Split(splitOnForKey);
-                        var key = splitTempKey[0];
-                        var tempSvg = "";
-                        int indexOfEnd = splitLine[1].IndexOf(")}");
-                        if(indexOfEnd >= 0)
-                        {
-                            tempSvg = splitLine[1].Remove(indexOfEnd);
-                        }
-                        var svg = Encoding.UTF8.GetString(Convert.FromBase64String(tempSvg));
-                        var xml = new System.Xml.XmlDocument();
-                        xml.LoadXml(svg);
-                        var moo = Svg.SvgDocument.Open(xml);
-                        var biggest = Math.Max(moo.Width, moo.Height);
-                        moo.Width = biggest;
-                        moo.Height = biggest;
-                        var loo = moo.Draw();
-                        string localFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Ripshout\\ChannelCovers\\";
-                        if(!Directory.Exists(localFolder))
-                        {
-                            Directory.CreateDirectory(localFolder);
-                        }
-                        if(loo == null)
-                        {
-                            var defImg = Bitmap.FromFile(System.AppDomain.CurrentDomain.BaseDirectory + "/Images/DefaultBackdrop.png");
-                            defImg.Save(localFolder + "OneFM" + key + ".jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
-                        }
-                        else
-                        {
-                            var fixedBit = SettingsIoHelpers.ResizeImage(loo, 190, 190);
-                            fixedBit.Save(localFolder + "OneFM" + key + ".jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
-                        }
-                    }
-                }
-                else
-                {
-                    var splitLine = line.Split(@"background-image:url(data:image/svg+xml,");
-                    if(splitLine.Length == 2)
-                    {
-                        var tempkey = splitLine[0];
-                        var splitTempKey = tempkey.Split("{height:");
-                        var key = splitTempKey[0];
-                        var svg = WebUtility.UrlDecode(splitLine[1]);
-                        int indexOfEnd = svg.IndexOf(")}");
-                        if(indexOfEnd >= 0)
-                        {
-                            svg = svg.Remove(indexOfEnd);
-                        }
-                        var xml = new System.Xml.XmlDocument();
-                        xml.LoadXml(svg);
-                        var moo = Svg.SvgDocument.Open(xml);
-                        var biggest = Math.Max(moo.Width, moo.Height);
-                        moo.Width = biggest;
-                        moo.Height = biggest;
-                        var loo = moo.Draw();
-                        string localFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Ripshout\\ChannelCovers\\";
-                        if(!Directory.Exists(localFolder))
-                        {
-                            Directory.CreateDirectory(localFolder);
-                        }
-                        var fixedBit = SettingsIoHelpers.ResizeImage(loo, 190, 190);
-
-                        fixedBit.Save(localFolder + "OneFM" + key + ".jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
-                    }
-                }
-            }
-        });
-        return true;
     }
 }
 
