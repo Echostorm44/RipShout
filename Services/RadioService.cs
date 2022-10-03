@@ -60,7 +60,7 @@ public class RadioService : IDisposable
         workSwitch = false;
     }
 
-    public void StartStreamFromURL(string url)
+    public void StartStreamFromURL(string url, string backupURL)
     {
         StopStreaming();
         while(Running || GetTrackDataRunning || SaveTrackRunning)
@@ -80,7 +80,7 @@ public class RadioService : IDisposable
             try
             {
                 Running = true;
-                Task<bool> startUp = CurrentShoutCastStream.StartUp(url);
+                Task<bool> startUp = CurrentShoutCastStream.StartUp(url, backupURL);
                 var foo = startUp.Result;
                 CurrentShoutCastStream.StreamTitleChanged += new StreamTitleChangedHandler(scS_StreamTitleChanged);
                 if(!Directory.Exists(App.MySettings.SaveTempMusicToFolder + @"\" + Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\"))

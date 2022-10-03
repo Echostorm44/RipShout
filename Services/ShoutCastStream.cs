@@ -12,6 +12,7 @@ namespace RipShout.Services;
 
 
 
+
 public delegate void StreamTitleChangedHandler(object source, string title, string genre, string bitrate, string extension);
 
 public class ShoutCastStream : Stream
@@ -30,7 +31,7 @@ public class ShoutCastStream : Stream
     /// </summary>
     public event StreamTitleChangedHandler StreamTitleChanged;
 
-    public async Task<bool> StartUp(string url)
+    public async Task<bool> StartUp(string url, string backupURL)// TODO pass backup url && use it if netstream is null
     {
         // Check for playlist url
         if(url.Contains(".pls"))
@@ -40,6 +41,16 @@ public class ShoutCastStream : Stream
             //    "<a target='_blank' href='$1'>$1</a>");
         }
 
+        await GetStreamRunning(url);
+        if(netStream == null && !string.IsNullOrEmpty(backupURL))
+        {
+            await GetStreamRunning(backupURL);
+        }
+        return true;
+    }
+
+    private async Task GetStreamRunning(string url)
+    {
         HttpClient client = new HttpClient();
         var request = new HttpRequestMessage()
         {
@@ -66,7 +77,6 @@ public class ShoutCastStream : Stream
             }
             netStream = response.Content.ReadAsStreamAsync().Result;
         });
-        return true;
     }
 
     public ShoutCastStream()

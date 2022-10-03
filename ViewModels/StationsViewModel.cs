@@ -77,7 +77,8 @@ public class StationsViewModel : INotifyPropertyChanged
             return;
         }
         var url = ((ChannelModel)choice).PrimaryURL;
-        App.MyRadio.StartStreamFromURL(url);
+        var backupUrl = ((ChannelModel)choice).PrimaryURL;
+        App.MyRadio.StartStreamFromURL(url, backupUrl);
         _navigationService.Navigate(typeof(Views.NowPlayingPage));
     }
 

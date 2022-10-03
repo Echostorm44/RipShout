@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -148,6 +149,10 @@ public static class AudioAddictGetChannelsService
                                 {
                                     SettingsIoHelpers.SaveURLChannelCover(chan.ID, "http:" + item.asset_url);
                                     chan.ImageURL = SettingsIoHelpers.GetChannelCover(chan.ID, fam);
+                                    if(chan.ImageURL == null)
+                                    {
+                                        chan.ImageURL = System.IO.Path.Combine(Assembly.GetExecutingAssembly().Location, "/Images/DefaultChannelCover.png");
+                                    }
                                 }
                                 results.Add(chan);
                             }
