@@ -106,19 +106,19 @@
             </ui:CardAction>
             <ui:CardAction Icon="Folder24" Grid.Row="9" Click="SetTempMusicPath_Click">
                 <StackPanel Orientation="Vertical" >
-                    <TextBlock Text="Path To Finished Recordings"></TextBlock>
+                    <TextBlock Text="Path To Temp Recordings"></TextBlock>
                     <TextBlock Text="{Binding MySettings.SaveTempMusicToFolder}"></TextBlock>
                 </StackPanel>
             </ui:CardAction>
             <ui:CardAction Icon="Folder24" Grid.Row="10" Click="SetArtistImageCachePath_Click">
                 <StackPanel Orientation="Vertical" >
-                    <TextBlock Text="Path To Finished Recordings"></TextBlock>
+                    <TextBlock Text="Path To Artist Backdrops"></TextBlock>
                     <TextBlock Text="{Binding MySettings.ArtistImageCacheFolder}"></TextBlock>
                 </StackPanel>
             </ui:CardAction>
             <ui:CardAction Icon="Folder24" Grid.Row="11" Click="SetAlbumImageCachePath_Click">
                 <StackPanel Orientation="Vertical" >
-                    <TextBlock Text="Path To Finished Recordings"></TextBlock>
+                    <TextBlock Text="Path To Album Covers"></TextBlock>
                     <TextBlock Text="{Binding MySettings.AlbumImageCacheFolder}"></TextBlock>
                 </StackPanel>
             </ui:CardAction>
