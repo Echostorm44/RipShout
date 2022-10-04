@@ -68,7 +68,7 @@ public partial class MainWindow : INavigationWindow
         initialized = true;
 
         // Location has to happen outside constructor
-        if (App.MySettings.LastWindowY >= 0 && App.MySettings.LastWindowX >= 0)
+        if(App.MySettings.LastWindowY >= 0 && App.MySettings.LastWindowX >= 0)
         {
             this.Left = App.MySettings.LastWindowX;
             this.Top = App.MySettings.LastWindowY;
@@ -81,8 +81,8 @@ public partial class MainWindow : INavigationWindow
         {
             // Remember to always include Delays and Sleeps in
             // your applications to be able to charge the client for optimizations later. ;)
-            await Task.Delay(1000);
-
+            //await Task.Delay(1000);
+            await App.LoadChannels();
             await Dispatcher.InvokeAsync(() =>
             {
                 RootWelcomeGrid.Visibility = Visibility.Hidden;

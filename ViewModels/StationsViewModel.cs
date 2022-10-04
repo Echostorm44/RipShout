@@ -41,27 +41,16 @@ public class StationsViewModel : INotifyPropertyChanged
             return false;
         }
         StartingUp = true;
-        Channels.Clear();
         var chans = new List<ChannelModel>();
-        if(App.CachedChannelList.Count != 0 && App.CachedChannelListConfig == (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
-            App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.ShowOneFmChannels))
+        if(App.CachedChannelList != null && App.CachedChannelList.Count > 0)
         {
             chans = App.CachedChannelList;
         }
         else
         {
-            chans = await AudioAddictChannelServices.AudioAddictGetChannelsService.GetChannelsAsync(App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
-            App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.FavoriteIDs);
-            // Add oneFm to chans
-            var oneFMChans = await OneFmChannelServices.OneFmGetStationsService.GetChannelsAsync(App.MySettings.FavoriteIDs);
-            if(oneFMChans != null)
-            {
-                chans.AddRange(oneFMChans);
-            }
-            App.CachedChannelList = chans;
-            App.CachedChannelListConfig = (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
-            App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.ShowOneFmChannels);
+            chans = await App.LoadChannels();
         }
+        Channels.Clear();
         foreach(var item in chans.OrderByDescending(a => a.IsFavorite).ThenBy(a => a.Family))
         {
             Channels.Add(item);
