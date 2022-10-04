@@ -48,8 +48,8 @@ public partial class MainWindow : INavigationWindow
             var win = GetWindowResolutionAndLocation();
             App.MySettings.LastWindowHeight = win.height;
             App.MySettings.LastWindowWidth = win.width;
-            App.MySettings.LastWindowX = win.x;
-            App.MySettings.LastWindowY = win.y;
+            App.MySettings.LastWindowX = win.x >= 0 ? win.x : 0;
+            App.MySettings.LastWindowY = win.y >= 0 ? win.y : 0;
             App.MySettings.SaveToFile();
         }
         else
@@ -68,8 +68,11 @@ public partial class MainWindow : INavigationWindow
         initialized = true;
 
         // Location has to happen outside constructor
-        this.Left = App.MySettings.LastWindowX;
-        this.Top = App.MySettings.LastWindowY;
+        if (App.MySettings.LastWindowY >= 0 && App.MySettings.LastWindowX >= 0)
+        {
+            this.Left = App.MySettings.LastWindowX;
+            this.Top = App.MySettings.LastWindowY;
+        }
 
         RootMainGrid.Visibility = Visibility.Collapsed;
         RootWelcomeGrid.Visibility = Visibility.Visible;
