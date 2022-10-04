@@ -43,6 +43,31 @@ public partial class App : Application
             MySettings.ShowJazzRadioChannels, MySettings.ShowRockRadioChannels, MySettings.ShowZenRadioChannels, MySettings.ShowClassicalRadioChannels, MySettings.ShowOneFmChannels);
     }
 
+    public static async Task<List<ChannelModel>> LoadChannels()
+    {
+        var chans = new List<ChannelModel>();
+        if(App.CachedChannelList.Count != 0 && App.CachedChannelListConfig == (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
+                        App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.ShowOneFmChannels))
+        {
+            chans = App.CachedChannelList;
+        }
+        else
+        {
+            chans = await AudioAddictChannelServices.AudioAddictGetChannelsService.GetChannelsAsync(App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
+            App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.FavoriteIDs);
+            // Add oneFm to chans
+            var oneFMChans = await OneFmChannelServices.OneFmGetStationsService.GetChannelsAsync(App.MySettings.FavoriteIDs);
+            if(oneFMChans != null)
+            {
+                chans.AddRange(oneFMChans);
+            }
+            App.CachedChannelList = chans;
+            App.CachedChannelListConfig = (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
+            App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.ShowOneFmChannels);
+        }
+        return chans;
+    }
+
     public void MySettings_ValueChanged(object source)
     {
         bounce.Debounce(() =>
@@ -106,6 +131,8 @@ public partial class App : Application
     /// </summary>
     private async void OnExit(object sender, ExitEventArgs e)
     {
+        MyRadio.Dispose();
+
         foreach(var doomedFolder in Directory.EnumerateDirectories(MySettings.SaveTempMusicToFolder))
         {
             try

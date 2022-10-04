@@ -44,7 +44,6 @@ public class RadioService : IDisposable
     string lastTitle = "";
     bool workSwitch = true;
     SongDetailsModel currentSongDetails;
-    Progress<bool> prog = new Progress<bool>();
 
     public RadioService()
     {
@@ -459,6 +458,11 @@ public class RadioService : IDisposable
     public void Dispose()
     {
         workSwitch = false;
+        if(MediaPlaya != null)
+        {
+            MediaPlaya.Stop();
+            MediaPlaya.Close();
+        }
         if(byteOut != null)
         {
             byteOut.Dispose();
