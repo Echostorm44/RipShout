@@ -31,7 +31,7 @@ public partial class App : Application
     public static SettingsModel MySettings { get; set; }
     public static List<ChannelModel> CachedChannelList { get; set; }
     public static (string listenKey, bool getDI, bool getRt, bool getJazz, bool getRock, bool getZen, bool getClassical, bool getOneFm) CachedChannelListConfig { get; set; }
-    Debouncer bounce = new Debouncer(500);
+    Debouncer bounce = new Debouncer(2000);
 
     public App()
     {
@@ -56,10 +56,13 @@ public partial class App : Application
             chans = await AudioAddictChannelServices.AudioAddictGetChannelsService.GetChannelsAsync(App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
             App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.FavoriteIDs);
             // Add oneFm to chans
-            var oneFMChans = await OneFmChannelServices.OneFmGetStationsService.GetChannelsAsync(App.MySettings.FavoriteIDs);
-            if(oneFMChans != null)
+            if(MySettings.ShowOneFmChannels)
             {
-                chans.AddRange(oneFMChans);
+                var oneFMChans = await OneFmChannelServices.OneFmGetStationsService.GetChannelsAsync(App.MySettings.FavoriteIDs);
+                if(oneFMChans != null)
+                {
+                    chans.AddRange(oneFMChans);
+                }
             }
             App.CachedChannelList = chans;
             App.CachedChannelListConfig = (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
@@ -70,8 +73,10 @@ public partial class App : Application
 
     public void MySettings_ValueChanged(object source)
     {
-        bounce.Debounce(() =>
+        bounce.Debounce(async () =>
         {
+            App.CachedChannelList.Clear();
+            await App.GetService<StationsViewModel>().LoadChannelsPlease(true);
             SettingsIoHelpers.SaveGeneralSettingsToDisk((SettingsModel)source);
         });
     }

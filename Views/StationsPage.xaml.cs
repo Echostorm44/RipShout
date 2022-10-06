@@ -24,6 +24,7 @@ using Wpf.Ui.Common;
 using Wpf.Ui.Common.Interfaces;
 using Wpf.Ui.Controls;
 using Wpf.Ui.Mvvm.Contracts;
+using Wpf.Ui.Mvvm.Services;
 
 namespace RipShout.Views;
 
@@ -34,26 +35,21 @@ public partial class StationsPage
 {
     public StationsViewModel ViewModel { get; }
 
-    public StationsPage(StationsViewModel vm)//, IRadioService radioService)
+    public StationsPage(StationsViewModel vm)
     {
         ViewModel = vm;
         this.DataContext = ViewModel;
         InitializeComponent();
     }
 
-    private async void btnPlayEnteredURL_Click(object sender, RoutedEventArgs e)
+    private void btnPlayEnteredURL_Click(object sender, RoutedEventArgs e)
     {
-        //var iTunesTrackInfo = TrackInfoHelpers.GetTrackInfoFromItunes("Nirvana", "Polly");
-        //var discogTrackInfo =  TrackInfoHelpers.GetTrackInfoFromDiscogs("Nirvana", "Polly", "dzlteADaCwkHvvgoxQKhfIlXujJIZJuFxeaWselC");        
-        //var artistID = await TrackInfoHelpers.GetArtistIdFromMusicBrainz("Nirvana", "Nevermind");
-        //var fanArt = TrackInfoHelpers.GetFanArtFromFanArt(artistID, "a1da18ae7b743cf897c170678b58d746");
-        //var loo = NavigationService;
-        //_navigationService.Navigate(typeof(Views.NowPlayingPage));
+        ViewModel.PlayChannel(txtStationURL.Text?.Trim());
     }
 
     private async void UiPage_Loaded(object sender, RoutedEventArgs e)
     {
-        await ViewModel.StartItUp();
+        await ViewModel.LoadChannelsPlease();
     }
 
     private void ToggleSwitch_Checked(object sender, RoutedEventArgs e)
