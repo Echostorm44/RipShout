@@ -28,11 +28,7 @@ public class SettingsModel : INotifyPropertyChanged
     }
 
     bool loggingOn;
-    public bool LoggingOn
-    {
-        get => loggingOn;
-        set => SetField(ref loggingOn, value);
-    }
+    public bool LoggingOn { get => loggingOn; set => SetField(ref loggingOn, value); }
     string audioAddictListenKey;
     public string AudioAddictListenKey
     {
@@ -40,7 +36,7 @@ public class SettingsModel : INotifyPropertyChanged
         set => SetField(ref audioAddictListenKey, value);
     }
     bool showDiChannels;
-    public bool ShowDiChannels { get => showDiChannels; set => SetField(ref showDiChannels, value); }
+    public bool ShowDiChannels { get => showDiChannels; set { SetField(ref showDiChannels, value); } }
     bool showRadioTunesChannels;
     public bool ShowRadioTunesChannels
     {

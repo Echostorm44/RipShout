@@ -34,7 +34,7 @@ public class StationsViewModel : INotifyPropertyChanged
         _navigationService = navigationService;
     }
 
-    public async Task<bool> StartItUp()
+    public async Task<bool> LoadChannelsPlease(bool reloadFromWeb = false)
     {
         if(StartingUp)
         {
@@ -42,18 +42,22 @@ public class StationsViewModel : INotifyPropertyChanged
         }
         StartingUp = true;
         var chans = new List<ChannelModel>();
-        if(App.CachedChannelList != null && App.CachedChannelList.Count > 0)
-        {
-            chans = App.CachedChannelList;
-        }
-        else
+        if(reloadFromWeb || App.CachedChannelList == null || App.CachedChannelList.Count == 0)
         {
             chans = await App.LoadChannels();
         }
-        Channels.Clear();
-        foreach(var item in chans.OrderByDescending(a => a.IsFavorite).ThenBy(a => a.Family))
+        else if(App.CachedChannelList != null && App.CachedChannelList.Count > 0 && Channels.Count == 0 && !reloadFromWeb)
         {
-            Channels.Add(item);
+            chans = App.CachedChannelList;
+        }
+
+        if(Channels.Count == 0 || reloadFromWeb)
+        {
+            Channels.Clear();
+            foreach(var item in chans.OrderByDescending(a => a.IsFavorite).ThenBy(a => a.Family))
+            {
+                Channels.Add(item);
+            }
         }
         StartingUp = false;
         return true;
@@ -68,6 +72,16 @@ public class StationsViewModel : INotifyPropertyChanged
         var url = ((ChannelModel)choice).PrimaryURL;
         var backupUrl = ((ChannelModel)choice).PrimaryURL;
         App.MyRadio.StartStreamFromURL(url, backupUrl);
+        _navigationService.Navigate(typeof(Views.NowPlayingPage));
+    }
+
+    public void PlayChannel(string url, string backupURL = "")
+    {
+        if(string.IsNullOrEmpty(url))
+        {
+            return;
+        }
+        App.MyRadio.StartStreamFromURL(url, backupURL);
         _navigationService.Navigate(typeof(Views.NowPlayingPage));
     }
 

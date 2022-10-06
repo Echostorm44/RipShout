@@ -27,7 +27,7 @@
             </Grid>
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
                 <ui:ProgressRing IsIndeterminate="True" />
-                <TextBlock Margin="0,12,0,0" FontSize="16" FontWeight="Medium" Text="Preparing app for you."
+                <TextBlock Margin="0,12,0,0" FontSize="16" FontWeight="Medium" Text="Preparing RipShout for you."
                     TextAlignment="Center" TextWrapping="Wrap" />
             </StackPanel>
             <TextBlock Grid.Row="1" Grid.ColumnSpan="2" TextWrapping="Wrap" FontSize="16"></TextBlock>
