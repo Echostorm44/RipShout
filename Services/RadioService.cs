@@ -122,8 +122,7 @@ public class RadioService : IDisposable
             {
                 if(byteOut != null)
                 {
-                    byteOut.Flush();
-                    byteOut.Close();
+                    byteOut.Dispose();
                 }
                 isFrontCut = true;
                 CurrentShoutCastStream.StreamTitleChanged -= new StreamTitleChangedHandler(scS_StreamTitleChanged);

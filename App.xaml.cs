@@ -66,7 +66,7 @@ public partial class App : Application
             }
             App.CachedChannelList = chans;
             App.CachedChannelListConfig = (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
-            App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.ShowOneFmChannels);
+                App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.ShowOneFmChannels);
         }
         return chans;
     }
@@ -74,11 +74,16 @@ public partial class App : Application
     public void MySettings_ValueChanged(object source)
     {
         bounce.Debounce(async () =>
-        {
-            App.CachedChannelList.Clear();
-            await App.GetService<StationsViewModel>().LoadChannelsPlease(true);
+        {            
             SettingsIoHelpers.SaveGeneralSettingsToDisk((SettingsModel)source);
+            await ForceRefreshChansFromWebAsync();
         });
+    }
+
+    public static async Task ForceRefreshChansFromWebAsync()
+    {
+        App.CachedChannelList.Clear();
+        await App.GetService<StationsViewModel>().LoadChannelsPlease(true);
     }
 
     private static readonly IHost _host = Host
