@@ -89,4 +89,18 @@ public partial class SettingsPage
             SnackbarService.Show("Saved!", "Settings Updated", SymbolRegular.Save24);
         }
     }
+
+    private void CardAction_Click(object sender, RoutedEventArgs e)
+    {
+        About about = new About();
+        about.ShowDialog();
+        //var myProcess = new System.Diagnostics.Process();
+        //myProcess.StartInfo.UseShellExecute = true;
+        //myProcess.StartInfo.FileName = "https://github.com/Echostorm44/RipShout";
+        //myProcess.Start();
+    }
+
+    private void CardAction_Click_1(object sender, RoutedEventArgs e)
+    {
+    }
 }

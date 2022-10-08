@@ -27,7 +27,6 @@ namespace RipShout;
 /// </summary>
 public partial class MainWindow : INavigationWindow
 {
-    //<a href="https://www.flaticon.com/free-icons/radio" title="radio icons">Radio icons created by Freepik - Flaticon</a>
     public ViewModels.MainViewModel ViewModel { get; set; }
     private bool initialized = false;
     private readonly IThemeService themeService;
@@ -81,7 +80,6 @@ public partial class MainWindow : INavigationWindow
         {
             // Remember to always include Delays and Sleeps in
             // your applications to be able to charge the client for optimizations later. ;)
-            //await Task.Delay(1000);
             await App.LoadChannels();
             await Dispatcher.InvokeAsync(() =>
             {

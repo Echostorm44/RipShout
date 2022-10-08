@@ -28,6 +28,8 @@
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"></ColumnDefinition>
@@ -130,6 +132,8 @@
                 </ui:CardControl.Header>
                 <ui:ToggleSwitch IsChecked="{ Binding MySettings.LoggingOn }" ></ui:ToggleSwitch>
             </ui:CardControl>
+            <ui:CardAction Grid.Row="13" Icon="PersonInfo20" Content="About" Click="CardAction_Click" />
+            <ui:CardAction Grid.Row="13" Icon="PersonInfo20" Content="Source code on Github" Click="CardAction_Click_1" />
         </Grid>
     </ScrollViewer>
 </ui:UiPage>

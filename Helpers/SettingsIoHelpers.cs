@@ -7,6 +7,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -84,7 +85,9 @@ public static class SettingsIoHelpers
         var finalFileName = localFolder + id + ".jpg";
         if(fam == StationFamily.OneFM)
         {
-            finalFileName = localFolder + "OneFM" + id + ".jpg";
+            var assemblyPath = Assembly.GetExecutingAssembly().Location;
+            var root = Path.GetDirectoryName(assemblyPath);
+            finalFileName = root + "/Images/OneFmChanCovers/OneFM" + id + ".png";
         }
         if(!File.Exists(finalFileName))
         {
