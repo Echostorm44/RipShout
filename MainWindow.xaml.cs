@@ -84,14 +84,31 @@ public partial class MainWindow : INavigationWindow
         {
             // Remember to always include Delays and Sleeps in
             // your applications to be able to charge the client for optimizations later. ;)
-            await App.LoadChannels();
-            await CheckForUpdatesAsync();
-            await Dispatcher.InvokeAsync(() =>
+            try
             {
-                RootWelcomeGrid.Visibility = Visibility.Hidden;
-                RootMainGrid.Visibility = Visibility.Visible;
-                RootNavigation.Navigate(typeof(StationsPage));
-            });
+                await App.LoadChannels();
+                await CheckForUpdatesAsync();
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    RootWelcomeGrid.Visibility = Visibility.Hidden;
+                    RootMainGrid.Visibility = Visibility.Visible;
+                    RootNavigation.Navigate(typeof(StationsPage));
+                    if(!string.IsNullOrEmpty(updatePath))
+                    {
+                        var mb = new Wpf.Ui.Controls.MessageBox();
+                        mb.ButtonLeftAppearance = Wpf.Ui.Common.ControlAppearance.Secondary;
+                        mb.ButtonLeftName = "Close & Update Now";
+                        mb.ButtonRightName = "Later";
+                        mb.ButtonLeftClick += UpdateNowNowNow;
+                        mb.ButtonRightClick += UpdateLater;
+                        mb.Show("Update Found!!", "Happy Day!! There is an update ready to install after you close Ripshout! Wanna do it now?");
+                    }
+                });
+            }
+            catch(Exception ex)
+            {
+                GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
+            }
 
             return true;
         });
@@ -101,7 +118,6 @@ public partial class MainWindow : INavigationWindow
     {
         try
         {
-            bool hasNewVersion = false;
             var assemblyPath = Assembly.GetExecutingAssembly().Location;
             var root = System.IO.Path.GetDirectoryName(assemblyPath);
             var finalFileName = root + "\\Version.txt";
@@ -124,25 +140,20 @@ public partial class MainWindow : INavigationWindow
                     if(serverText != localVersion)
                     {
                         var updateURL = splitServerText[1];
-                        Wpf.Ui.TaskBar.TaskBarProgress.SetValue(this, Wpf.Ui.TaskBar.TaskBarProgressState.Indeterminate, 0);
+                        this.RootFrame.Dispatcher.Invoke(() =>
+                        {
+                            Wpf.Ui.TaskBar.TaskBarProgress.SetValue(this, Wpf.Ui.TaskBar.TaskBarProgressState.Indeterminate, 0);
+                        });
                         using var s = await client.GetStreamAsync(updateURL);
                         updatePath = root + "\\update.msi";
                         using var fs = new FileStream(updatePath, FileMode.OpenOrCreate);
                         await s.CopyToAsync(fs);
-                        Wpf.Ui.TaskBar.TaskBarProgress.SetValue(this, Wpf.Ui.TaskBar.TaskBarProgressState.None, 0);
-                        hasNewVersion = true;
+                        this.RootFrame.Dispatcher.Invoke(() =>
+                        {
+                            Wpf.Ui.TaskBar.TaskBarProgress.SetValue(this, Wpf.Ui.TaskBar.TaskBarProgressState.None, 0);
+                        });
                     }
                 }
-            }
-            if(hasNewVersion)
-            {
-                var mb = new Wpf.Ui.Controls.MessageBox();
-                mb.ButtonLeftAppearance = Wpf.Ui.Common.ControlAppearance.Secondary;
-                mb.ButtonLeftName = "Close & Update Now";
-                mb.ButtonRightName = "Later";
-                mb.ButtonLeftClick += UpdateNowNowNow;
-                mb.ButtonRightClick += UpdateLater;
-                mb.Show("Update Found!!", "Happy Day!! There is an update ready to install after you close Ripshout! Wanna do it now?");
             }
         }
         catch(Exception ex)
