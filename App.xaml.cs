@@ -143,7 +143,7 @@ public partial class App : Application
     {
         MyRadio.Dispose();
 
-        foreach(var doomedFolder in Directory.EnumerateDirectories(MySettings.SaveTempMusicToFolder))
+        foreach (var doomedFolder in Directory.EnumerateDirectories(MySettings.SaveTempMusicToFolder))
         {
             try
             {// TODO this needs a beat for the stream to close || it won't be able to access

@@ -2,7 +2,10 @@
 using RipShout.Views;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -30,7 +33,7 @@ public partial class MainWindow : INavigationWindow
     public ViewModels.MainViewModel ViewModel { get; set; }
     private bool initialized = false;
     private readonly IThemeService themeService;
-
+    string updatePath = "";
 
     public MainWindow(MainViewModel viewModel, INavigationService navigationService, 
         IPageService pageService, IThemeService ts, ISnackbarService snackbarService)
@@ -81,6 +84,7 @@ public partial class MainWindow : INavigationWindow
             // Remember to always include Delays and Sleeps in
             // your applications to be able to charge the client for optimizations later. ;)
             await App.LoadChannels();
+
             await Dispatcher.InvokeAsync(() =>
             {
                 RootWelcomeGrid.Visibility = Visibility.Hidden;
@@ -90,6 +94,62 @@ public partial class MainWindow : INavigationWindow
 
             return true;
         });
+    }
+
+    private async void CheckForUpdatesAsync()
+    {
+        bool hasNewVersion = false;
+        var assemblyPath = Assembly.GetExecutingAssembly().Location;
+        var root = System.IO.Path.GetDirectoryName(assemblyPath);
+        var finalFileName = root + "Version.txt";
+        var localVersion = "";
+        using (TextReader tr = new StreamReader(finalFileName))
+        {
+            if (tr.Peek() > 0)
+            {
+                localVersion = tr.ReadLine();
+            }
+        }
+        
+        using (HttpClient client = new HttpClient())
+        {
+            var result = await client.GetAsync("https://raw.githubusercontent.com/Echostorm44/RipShout/main/Version.txt");
+            if (result.IsSuccessStatusCode)
+            {
+                var serverText = await result.Content.ReadAsStringAsync();
+                var splitServerText = serverText.Split("\r\n");
+                if (splitServerText[0] != localVersion)
+                {
+                    var updateURL = splitServerText[1];
+                    Wpf.Ui.TaskBar.TaskBarProgress.SetValue(this, Wpf.Ui.TaskBar.TaskBarProgressState.Indeterminate, 0);
+                    using var s = await client.GetStreamAsync(updateURL);
+                    updatePath = root + "\\update.msi";
+                    using var fs = new FileStream(updatePath, FileMode.OpenOrCreate);
+                    await s.CopyToAsync(fs);
+                    Wpf.Ui.TaskBar.TaskBarProgress.SetValue(this, Wpf.Ui.TaskBar.TaskBarProgressState.None, 0);
+                    hasNewVersion = true;
+                }
+            }
+        }
+        
+        var mb = new Wpf.Ui.Controls.MessageBox();
+        mb.ButtonLeftAppearance = Wpf.Ui.Common.ControlAppearance.Secondary;
+        mb.ButtonLeftName = "Close & Update Now";
+        mb.ButtonRightName = "Later";
+        mb.ButtonLeftClick += UpdateNowNowNow;
+        mb.ButtonRightClick += UpdateLater;
+        mb.Show("Update Found!!", "Happy Day!! There is an update ready to install after you close Ripshout! Wanna do it now?");
+    }
+
+    private void UpdateNowNowNow(object sender, RoutedEventArgs e)
+    {
+        this.Close();
+        (sender as Wpf.Ui.Controls.MessageBox)?.Close();
+    }
+
+    private void UpdateLater(object sender, RoutedEventArgs e)
+    {
+        (sender as Wpf.Ui.Controls.MessageBox)?.Close();
     }
 
     public Frame GetFrame()
@@ -112,6 +172,14 @@ public partial class MainWindow : INavigationWindow
 
     private void UiWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
+        if (!string.IsNullOrEmpty(updatePath))
+        {
+            var myProcess = new System.Diagnostics.Process();
+            myProcess.StartInfo.UseShellExecute = true;
+            myProcess.StartInfo.FileName = updatePath;
+            myProcess.Start();
+        }
+
         // Remember where the window was for next time.
         var win = GetWindowResolutionAndLocation();
         App.MySettings.LastWindowHeight = win.height;
