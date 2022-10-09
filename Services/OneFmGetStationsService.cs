@@ -64,7 +64,6 @@ public static class OneFmGetStationsService
     }
 }
 
-// Root myDeserializedClass = JsonConvert.DeserializeObject<List<Root>>(myJsonResponse);
 public class Root
 {
     public string stid { get; set; }//id
