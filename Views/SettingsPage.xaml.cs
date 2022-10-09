@@ -90,17 +90,17 @@ public partial class SettingsPage
         }
     }
 
-    private void CardAction_Click(object sender, RoutedEventArgs e)
+    private void About_Click(object sender, RoutedEventArgs e)
     {
         About about = new About();
         about.ShowDialog();
-        //var myProcess = new System.Diagnostics.Process();
-        //myProcess.StartInfo.UseShellExecute = true;
-        //myProcess.StartInfo.FileName = "https://github.com/Echostorm44/RipShout";
-        //myProcess.Start();
     }
 
-    private void CardAction_Click_1(object sender, RoutedEventArgs e)
+    private void Source_Click(object sender, RoutedEventArgs e)
     {
+        var myProcess = new System.Diagnostics.Process();
+        myProcess.StartInfo.UseShellExecute = true;
+        myProcess.StartInfo.FileName = "https://github.com/Echostorm44/RipShout";
+        myProcess.Start();
     }
 }

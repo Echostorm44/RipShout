@@ -132,8 +132,8 @@
                 </ui:CardControl.Header>
                 <ui:ToggleSwitch IsChecked="{ Binding MySettings.LoggingOn }" ></ui:ToggleSwitch>
             </ui:CardControl>
-            <ui:CardAction Grid.Row="13" Icon="PersonInfo20" Content="About" Click="CardAction_Click" />
-            <ui:CardAction Grid.Row="13" Icon="PersonInfo20" Content="Source code on Github" Click="CardAction_Click_1" />
+            <ui:CardAction Grid.Row="13" Icon="PersonInfo20" Content="About" Click="About_Click" />
+            <ui:CardAction Grid.Row="14" Icon="PersonInfo20" Content="Source code on Github" Click="Source_Click" />
         </Grid>
     </ScrollViewer>
 </ui:UiPage>
