@@ -79,6 +79,7 @@ public partial class MainWindow : INavigationWindow
 
         RootMainGrid.Visibility = Visibility.Collapsed;
         RootWelcomeGrid.Visibility = Visibility.Visible;
+        Wpf.Ui.TaskBar.TaskBarProgress.SetValue(this, Wpf.Ui.TaskBar.TaskBarProgressState.Indeterminate, 0);
 
         Task.Run(async () =>
         {
@@ -101,8 +102,10 @@ public partial class MainWindow : INavigationWindow
                         mb.ButtonRightName = "Later";
                         mb.ButtonLeftClick += UpdateNowNowNow;
                         mb.ButtonRightClick += UpdateLater;
-                        mb.Show("Update Found!!", "Happy Day!! There is an update ready to install after you close Ripshout! Wanna do it now?");
+                        mb.Width = 500;
+                        mb.Show("Update Found!!", "Happy Day!!\r\nThere is an update ready to install after you close Ripshout!\r\nWanna do it now?");
                     }
+                    Wpf.Ui.TaskBar.TaskBarProgress.SetValue(this, Wpf.Ui.TaskBar.TaskBarProgressState.None, 0);
                 });
             }
             catch(Exception ex)
@@ -121,6 +124,11 @@ public partial class MainWindow : INavigationWindow
             var assemblyPath = Assembly.GetExecutingAssembly().Location;
             var root = System.IO.Path.GetDirectoryName(assemblyPath);
             var finalFileName = root + "\\Version.txt";
+            var downloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Ripshout\\UpdateDownload\\";
+            if(!Directory.Exists(downloadFolder))
+            {
+                Directory.CreateDirectory(downloadFolder);
+            }
             var localVersion = "";
             using(TextReader tr = new StreamReader(finalFileName))
             {
@@ -140,18 +148,10 @@ public partial class MainWindow : INavigationWindow
                     if(serverText != localVersion)
                     {
                         var updateURL = splitServerText[1];
-                        this.RootFrame.Dispatcher.Invoke(() =>
-                        {
-                            Wpf.Ui.TaskBar.TaskBarProgress.SetValue(this, Wpf.Ui.TaskBar.TaskBarProgressState.Indeterminate, 0);
-                        });
                         using var s = await client.GetStreamAsync(updateURL);
-                        updatePath = root + "\\update.msi";
+                        updatePath = downloadFolder + "update.msi";
                         using var fs = new FileStream(updatePath, FileMode.OpenOrCreate);
                         await s.CopyToAsync(fs);
-                        this.RootFrame.Dispatcher.Invoke(() =>
-                        {
-                            Wpf.Ui.TaskBar.TaskBarProgress.SetValue(this, Wpf.Ui.TaskBar.TaskBarProgressState.None, 0);
-                        });
                     }
                 }
             }
