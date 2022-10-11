@@ -15,16 +15,6 @@ namespace RipShout.Helpers;
 
 public static class TrackInfoHelpers
 {
-    /*
-     http://musicbrainz.org/ws/2/recording/?query=artist:%22John%20Travolta%2C%20Olivia%20Newton-John%22+and+recording:%22Summer%20Nights%22&limit=30
-     https://itunes.apple.com/search?media=music&entity=song&term=nirvana-polly
-    http://webservice.fanart.tv/v3/music/b60527cc-54f3-4bbe-a01b-dcf34c95ae14?api_key=a1da18ae7b743cf897c170678b58d746
-    http://musicbrainz.org/ws/2/artist/?query=artist:nirvana&limit=1 
-    // fanart uses musicbrains ID
-    https://api.discogs.com/database/search?query=nirvana+-+polly&token=dzlteADaCwkHvvgoxQKhfIlXujJIZJuFxeaWselC&per_page=3&format=album&type=master
-    lastFM?     */
-
-
     public static ScrapeDataDiscogsAlbum? GetTrackInfoFromDiscogs(string artist, string track, string token)
     {
         try
