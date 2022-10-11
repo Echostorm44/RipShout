@@ -332,7 +332,7 @@ public class RadioService : IDisposable
             currentModel.HasArtistImagesInLocalFolder = false;
             if(!string.IsNullOrEmpty(artistID))
             {
-                var fanArt = TrackInfoHelpers.GetFanArtFromFanArt(artistID, "a1da18ae7b743cf897c170678b58d746");
+                var fanArt = TrackInfoHelpers.GetFanArtFromFanArt(artistID, "f70d3e1719d159ecc4819187ab742521");
                 if(fanArt != null && fanArt.artistbackground.Count > 0)
                 {
                     string backdropPath = App.MySettings.ArtistImageCacheFolder + "\\" + artistID;
