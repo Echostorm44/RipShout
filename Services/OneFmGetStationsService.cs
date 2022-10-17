@@ -23,6 +23,11 @@ public static class OneFmGetStationsService
     public static async Task<List<ChannelModel>> GetChannelsAsync(List<string> favs)
     {
         var channels = new List<ChannelModel>();
+        var statChansFromDiskCache = SettingsIoHelpers.LoadStationChannelCacheFromDisk("onefm");
+        if(statChansFromDiskCache.Count > 0)
+        {
+            return statChansFromDiskCache;
+        }
 
         using(HttpClient client = new HttpClient())
         {
@@ -55,6 +60,10 @@ public static class OneFmGetStationsService
                             }
                             chan.ImageURL = imageURL;
                             channels.Add(chan);
+                        }
+                        if(channels.Count > 0)
+                        {
+                            SettingsIoHelpers.SaveStationChannelCacheToDisk("onefm", channels);
                         }
                     }
                 });
