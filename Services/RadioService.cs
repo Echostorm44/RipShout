@@ -62,9 +62,16 @@ public class RadioService : IDisposable
     public void StartStreamFromURL(string url, string backupURL)
     {
         StopStreaming();
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
         while(Running || GetTrackDataRunning || SaveTrackRunning)
         {
             Task.Delay(100).Wait();
+            if(sw.Elapsed.TotalMinutes == 1)
+            {// Something has gone very wrong.  Break out && let them start over.
+                sw.Stop();
+                return;
+            }
         }
         CurrentShoutCastStream = new ShoutCastStream();
         MediaPlaya.Stop();
@@ -80,7 +87,12 @@ public class RadioService : IDisposable
             {
                 Running = true;
                 Task<bool> startUp = CurrentShoutCastStream.StartUp(url, backupURL);
-                var foo = startUp.Result;
+                var startupWorked = startUp.Result;
+                if(!startupWorked)
+                {
+                    SetCurrentSongDataToStopped();
+                    throw new Exception("Couldn't start stream");
+                }
                 CurrentShoutCastStream.StreamTitleChanged += new StreamTitleChangedHandler(scS_StreamTitleChanged);
                 if(!Directory.Exists(App.MySettings.SaveTempMusicToFolder + @"\" + Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\"))
                 {
@@ -115,6 +127,7 @@ public class RadioService : IDisposable
             }
             catch(Exception ex)
             {
+                Running = false;
                 GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
                 workSwitch = false;
             }
@@ -378,7 +391,10 @@ public class RadioService : IDisposable
         {
             GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
         }
-        GetTrackDataRunning = false;
+        finally
+        {
+            GetTrackDataRunning = false;
+        }
     }
 
     void SaveAlbumArt(string downloadUrl, ref SongDetailsModel currentModel)
@@ -470,5 +486,6 @@ public class RadioService : IDisposable
         {
             CurrentShoutCastStream.Dispose();
         }
+        Running = false;
     }
 }

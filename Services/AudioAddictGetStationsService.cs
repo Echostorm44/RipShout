@@ -117,11 +117,20 @@ public static class AudioAddictGetChannelsService
                 {
                     fam = StationFamily.ClassicalRadio;
                 }
+
+                var statChansFromDiskCache = SettingsIoHelpers.LoadStationChannelCacheFromDisk(stat);
+                if(statChansFromDiskCache.Count > 0)
+                {
+                    results.AddRange(statChansFromDiskCache);
+                    continue;
+                }
+
                 using(var request = new HttpRequestMessage())
                 {
                     request.RequestUri = new Uri($@"https://api.audioaddict.com/v1/{stat}/channels");
+                    var singleStatChanList = new List<ChannelModel>();
                     request.Method = HttpMethod.Get;
-                    await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ContinueWith(async (tm) =>
+                    await client.SendAsync(request, HttpCompletionOption.ResponseContentRead).ContinueWith(async (tm) =>
                     {
                         var response = await tm;
                         if(response.IsSuccessStatusCode)
@@ -155,7 +164,16 @@ public static class AudioAddictGetChannelsService
                                     }
                                 }
                                 results.Add(chan);
+                                singleStatChanList.Add(chan);
                             }
+                            if(singleStatChanList.Count > 0)
+                            {
+                                SettingsIoHelpers.SaveStationChannelCacheToDisk(stat, singleStatChanList);
+                            }
+                        }
+                        else
+                        {
+                            results.AddRange(SettingsIoHelpers.LoadStationChannelCacheFromDisk(stat));
                         }
                     });
                 }

@@ -1,4 +1,5 @@
-﻿using RipShout.ViewModels;
+﻿using RipShout.Helpers;
+using RipShout.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -102,5 +103,11 @@ public partial class SettingsPage
         myProcess.StartInfo.UseShellExecute = true;
         myProcess.StartInfo.FileName = "https://github.com/Echostorm44/RipShout";
         myProcess.Start();
+    }
+
+    private async void RefreshStationChannelsFromWeb_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsIoHelpers.ClearStationChanDiskCaches();
+        await App.LoadChannels();
     }
 }

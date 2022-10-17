@@ -1,8 +1,11 @@
 ﻿using RipShout.Helpers;
+using RipShout.Models;
 using RipShout.Services;
 using RipShout.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -33,23 +36,30 @@ namespace RipShout.Views;
 /// </summary>
 public partial class StationsPage
 {
-    public StationsViewModel ViewModel { get; }
+    private readonly INavigationService _navigationService;
 
-    public StationsPage(StationsViewModel vm)
+    public StationsPage(INavigationService navigationService)
     {
-        ViewModel = vm;
-        this.DataContext = ViewModel;
         InitializeComponent();
+        //chanPanel.Items.SortDescriptions.Add(new SortDescription("IsFavorite", ListSortDirection.Descending));
+        //chanPanel.Items.SortDescriptions.Add(new SortDescription("Family", ListSortDirection.Descending));
+        _navigationService = navigationService;
     }
 
     private void btnPlayEnteredURL_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.PlayChannel(txtStationURL.Text?.Trim());
+        var url = txtStationURL.Text?.Trim();
+        if(string.IsNullOrEmpty(url))
+        {
+            return;
+        }
+        App.MyRadio.StartStreamFromURL(url, null);
+        _navigationService.Navigate(typeof(Views.NowPlayingPage));
     }
 
     private async void UiPage_Loaded(object sender, RoutedEventArgs e)
     {
-        await ViewModel.LoadChannelsPlease();
+        //await ViewModel.LoadChannelsPlease();
     }
 
     private void ToggleSwitch_Checked(object sender, RoutedEventArgs e)
@@ -100,12 +110,16 @@ public partial class StationsPage
                 break;
         }
 
-        foreach(var item in ViewModel.Channels)
+        foreach(var item in App.CachedChannelList)
         {
             if(item.Family == stationFam && !item.IsFavorite)
             {
                 item.IsVisible = isVisible;
             }
+        }
+        if(chanPanel != null)
+        {
+            chanPanel.Items.Refresh();
         }
     }
 
@@ -113,5 +127,108 @@ public partial class StationsPage
     {
         var foo = (ToggleSwitch)e.Source;
         ToggleStationVisiblity(foo, false);
+    }
+
+    private void PlayChannel(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var choice = e.Source;
+            if(choice == null || e.Source.GetType() != typeof(System.Windows.Controls.Button))
+            {
+                return;
+            }
+            if(((System.Windows.Controls.Button)choice).DataContext.GetType() != typeof(ChannelModel) || ((System.Windows.Controls.Button)choice).CommandParameter?.ToString() != "Play")
+            {
+                return;
+            }
+            var model = ((ChannelModel)((System.Windows.Controls.Button)choice).DataContext);
+            var url = model.PrimaryURL;
+            var backupUrl = model.PrimaryURL;
+            App.MyRadio.StartStreamFromURL(url, backupUrl);
+            _navigationService.Navigate(typeof(Views.NowPlayingPage));
+        }
+        catch(Exception ex)
+        {
+            return;
+        }
+    }
+
+    private void ToggleFavorite(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var choice = e.Source;
+            if(choice == null || ((System.Windows.Controls.Button)choice).CommandParameter?.ToString() != "Fav")
+            {
+                return;
+            }
+            var model = ((ChannelModel)((System.Windows.Controls.Button)choice).DataContext);
+
+            var id = model.ID;
+            var prevState = model.IsFavorite;
+            model.IsFavorite = !prevState;
+            foreach(var chan in App.CachedChannelList)
+            {
+                if(chan.ID == model.ID)
+                {
+                    chan.IsFavorite = model.IsFavorite;
+                }
+            }
+            if(!prevState && !App.MySettings.FavoriteIDs.Contains(id))
+            {
+                App.MySettings.FavoriteIDs.Add(id);
+            }
+            else if(prevState && App.MySettings.FavoriteIDs.Contains(id))
+            {
+                App.MySettings.FavoriteIDs.Remove(id);
+            }
+            App.MySettings.SaveToFile();
+
+            //var query = App.CachedChannelList.OrderByDescending(a => a.IsFavorite).ThenByDescending(a => a.Family).ToList();
+            //App.CachedChannelList.Clear();
+            //foreach (var chan in query)
+            //{
+            //    App.CachedChannelList.Add(chan);
+            //}
+
+            var currentIndex = App.CachedChannelList.IndexOf(model);
+            int newIndex = 0;
+            if(prevState == true)
+            {// It was a fav but now it isn't so we need to put it back with its friends
+                var query = App.CachedChannelList.OrderByDescending(a => a.IsFavorite).ThenByDescending(a => a.Family).ToList();
+                newIndex = query.IndexOf(model);
+            }
+            App.CachedChannelList.Move(currentIndex, newIndex);
+
+            //var query = App.CachedChannelList.Select((item, index) => (Item: item, Index: index));
+            //var queryT = query.OrderByDescending(a => a.Item.IsFavorite).ThenByDescending(a => a.Item.Family).Select((item, index) => (Item: item, Index: index));
+            //query = query.OrderByDescending(a => a.Item.IsFavorite).ThenByDescending(a => a.Item.Family);
+
+            //var map = query.Select((tuple, index) => (OldIndex: tuple.Index, NewIndex: index)).Where(o => o.OldIndex != o.NewIndex);
+            //var map = queryT.Select((tuple, index) => (OldIndex: tuple.oldIndex, NewIndex: tuple.newIndex)).Where(o => o.OldIndex != o.NewIndex);
+            //using(var enumerator = map.GetEnumerator())
+            //{
+            //    while(enumerator.MoveNext())
+            //    {
+            //        App.CachedChannelList.Move(enumerator.Current.OldIndex, enumerator.Current.NewIndex);
+            //        if(enumerator.Current.OldIndex != enumerator.Current.NewIndex)
+            //        {
+            //        }
+            //    }
+            //}
+
+            //if(model.IsFavorite)
+            //{
+            //    App.CachedChannelList.Move(App.CachedChannelList.IndexOf(model), 0);
+            //}
+            //else if(chanPanel != null && !model.IsFavorite)
+            //{
+            //    chanPanel.Items.Refresh();
+            //}
+        }
+        catch(Exception ex)
+        {
+        }
     }
 }

@@ -41,42 +41,63 @@ public class ShoutCastStream : Stream
             //    "<a target='_blank' href='$1'>$1</a>");
         }
 
-        await GetStreamRunning(url);
+        var isStreamRunning = await GetStreamRunning(url);
         if(netStream == null && !string.IsNullOrEmpty(backupURL))
         {
-            await GetStreamRunning(backupURL);
+            isStreamRunning = await GetStreamRunning(backupURL);
+        }
+        if(!isStreamRunning)
+        {
+            return false;
         }
         return true;
     }
 
-    private async Task GetStreamRunning(string url)
+    private async Task<bool> GetStreamRunning(string url)
     {
-        HttpClient client = new HttpClient();
-        var request = new HttpRequestMessage()
+        bool result = true;
+        try
         {
-            RequestUri = new Uri(url),
-            Method = HttpMethod.Get,
-        };
-        request.Headers.Add("Icy-MetaData", "1");
-
-        await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ContinueWith((tm) =>
-        {
-            var response = tm.Result;
-            var metaIntTemp = response.Headers.First(a => a.Key == "icy-metaint").Value.First();
-            int.TryParse(metaIntTemp, out metaInt);
-            bitRate = response.Headers.First(a => a.Key == "icy-br").Value.First();
-            streamGenre = response.Headers.First(a => a.Key == "icy-genre").Value.First();
-
-            if(response.Headers.Any(a => a.Key == "Content-Type"))
+            HttpClient client = new HttpClient();
+            client.Timeout = new TimeSpan(0, 0, 5);
+            var request = new HttpRequestMessage()
             {
-                var conType = response.Headers.FirstOrDefault(a => a.Key == "Content-Type").Value.First();
-                if(!string.IsNullOrEmpty(conType) && conType.ToLower().StartsWith("audio"))
+                RequestUri = new Uri(url),
+                Method = HttpMethod.Get,
+            };
+            request.Headers.Add("Icy-MetaData", "1");
+
+            await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ContinueWith((tm) =>
+            {
+                try
                 {
-                    AudioEncodeType = conType.Replace("audio/", "");
+                    var response = tm.Result;
+                    var metaIntTemp = response.Headers.First(a => a.Key == "icy-metaint").Value.First();
+                    int.TryParse(metaIntTemp, out metaInt);
+                    bitRate = response.Headers.First(a => a.Key == "icy-br").Value.First();
+                    streamGenre = response.Headers.First(a => a.Key == "icy-genre").Value.First();
+
+                    if(response.Headers.Any(a => a.Key == "Content-Type"))
+                    {
+                        var conType = response.Headers.FirstOrDefault(a => a.Key == "Content-Type").Value.First();
+                        if(!string.IsNullOrEmpty(conType) && conType.ToLower().StartsWith("audio"))
+                        {
+                            AudioEncodeType = conType.Replace("audio/", "");
+                        }
+                    }
+                    netStream = response.Content.ReadAsStreamAsync().Result;
                 }
-            }
-            netStream = response.Content.ReadAsStreamAsync().Result;
-        });
+                catch(Exception ex)
+                {
+                    result = false;
+                }
+            });
+        }
+        catch(Exception ex)
+        {
+            result = false;
+        }
+        return result;
     }
 
     public ShoutCastStream()

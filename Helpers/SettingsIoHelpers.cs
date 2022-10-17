@@ -142,6 +142,42 @@ public static class SettingsIoHelpers
         return mySettings;
     }
 
+    public static List<ChannelModel> LoadStationChannelCacheFromDisk(string stationID)
+    {
+        List<ChannelModel> results = new List<ChannelModel>();
+        string fileName = stationID + "StationCache.dat";
+        var fileAge = GetFileAgeInDays(fileName);
+        var rawChannels = GetFileContents(fileName);
+        if(string.IsNullOrEmpty(rawChannels) || fileAge > 30)// only cache channels for 30 days
+        {
+            var serialChans = JsonSerializer.Serialize<List<ChannelModel>>(results);
+            WriteFile(fileName, serialChans);
+        }
+        else
+        {
+            results = JsonSerializer.Deserialize<List<ChannelModel>>(rawChannels) ?? new List<ChannelModel>();
+        }
+        return results;
+    }
+
+    public static void SaveStationChannelCacheToDisk(string stationID, List<ChannelModel> chans)
+    {
+        string fileName = stationID + "StationCache.dat";
+        var serialA = JsonSerializer.Serialize<List<ChannelModel>>(chans);
+        WriteFile(fileName, serialA);
+    }
+
+    public static void ClearStationChanDiskCaches()
+    {
+        string basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Ripshout\\";
+        var files = Directory.GetFiles(basePath);
+        var targets = files.Where(a => a.Contains("StationCache")).ToList();
+        foreach(string item in targets)
+        {
+            File.Delete(item);
+        }
+    }
+
     static string GetFileContents(string fileName)
     {
         string basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Ripshout\\";
@@ -153,6 +189,21 @@ public static class SettingsIoHelpers
         {
             var fileText = File.ReadAllText(basePath + fileName);
             return fileText;
+        }
+    }
+
+    static int GetFileAgeInDays(string fileName)
+    {
+        int daysOld = -1;
+        string basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Ripshout\\";
+        if(!File.Exists(basePath + fileName))
+        {
+            return daysOld;
+        }
+        else
+        {
+            var lastWriteUTC = File.GetLastWriteTime(basePath + fileName);
+            return (int)(DateTime.Now - lastWriteUTC).TotalDays;
         }
     }
 

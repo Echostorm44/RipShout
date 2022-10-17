@@ -9,6 +9,7 @@ using RipShout.ViewModels;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Configuration;
 using System.Data;
 using System.IO;
@@ -30,7 +31,7 @@ public partial class App : Application
 {
     public static RadioService? MyRadio { get; set; }
     public static SettingsModel MySettings { get; set; }
-    public static List<ChannelModel> CachedChannelList { get; set; }
+    public static ObservableCollection<ChannelModel> CachedChannelList { get; set; }
     public static (string listenKey, bool getDI, bool getRt, bool getJazz, bool getRock, bool getZen, bool getClassical, bool getOneFm) CachedChannelListConfig { get; set; }
     static SemaphoreSlim fetchSemi = new SemaphoreSlim(1, 1);
     Debouncer bounce = new Debouncer(2000);
@@ -40,36 +41,50 @@ public partial class App : Application
         MySettings = SettingsIoHelpers.LoadGeneralSettingsFromDisk();
         MyRadio = new RadioService();
         MySettings.ValueChanged += MySettings_ValueChanged;
-        CachedChannelList = new List<ChannelModel>();
+        CachedChannelList = new ObservableCollection<ChannelModel>();
         CachedChannelListConfig = (MySettings.AudioAddictListenKey, MySettings.ShowDiChannels, MySettings.ShowRadioTunesChannels,
             MySettings.ShowJazzRadioChannels, MySettings.ShowRockRadioChannels, MySettings.ShowZenRadioChannels, MySettings.ShowClassicalRadioChannels, MySettings.ShowOneFmChannels);
     }
 
-    public static async Task<List<ChannelModel>> LoadChannels()
+    public static async Task<bool> LoadChannels()
     {
-        var chans = new List<ChannelModel>();
-        if(App.CachedChannelList.Count != 0 && App.CachedChannelListConfig == (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
+        CachedChannelList.Clear();
+        if(CachedChannelList.Count != 0 && App.CachedChannelListConfig == (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
                         App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.ShowOneFmChannels))
         {
-            chans = App.CachedChannelList;
+            // Nothing to do, bail
+            return false;
         }
         else
         {
             await fetchSemi.WaitAsync();
             try
             {
-                chans = await AudioAddictChannelServices.AudioAddictGetChannelsService.GetChannelsAsync(App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
+                var channelList = new List<ChannelModel>();
+                var tempAaChans = await AudioAddictChannelServices.AudioAddictGetChannelsService.GetChannelsAsync(App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
                 App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.FavoriteIDs);
+                foreach(var aaChan in tempAaChans)
+                {
+                    aaChan.IsFavorite = MySettings.FavoriteIDs.Contains(aaChan.ID);
+                    channelList.Add(aaChan);
+                }
                 // Add oneFm to chans
                 if(MySettings.ShowOneFmChannels)
                 {
                     var oneFMChans = await OneFmChannelServices.OneFmGetStationsService.GetChannelsAsync(App.MySettings.FavoriteIDs);
                     if(oneFMChans != null)
                     {
-                        chans.AddRange(oneFMChans);
+                        foreach(var oneChan in oneFMChans)
+                        {
+                            oneChan.IsFavorite = MySettings.FavoriteIDs.Contains(oneChan.ID);
+                            channelList.Add(oneChan);
+                        }
                     }
                 }
-                App.CachedChannelList = chans;
+                foreach(var item in channelList.OrderByDescending(a => a.IsFavorite).ThenByDescending(a => a.Family))
+                {
+                    CachedChannelList.Add(item);
+                }
                 App.CachedChannelListConfig = (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
                     App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.ShowOneFmChannels);
             }
@@ -78,7 +93,7 @@ public partial class App : Application
                 fetchSemi.Release();
             }
         }
-        return chans;
+        return true;
     }
 
     public void MySettings_ValueChanged(object source)
@@ -93,7 +108,7 @@ public partial class App : Application
     public static async Task ForceRefreshChansFromWebAsync()
     {
         App.CachedChannelList.Clear();
-        await App.GetService<StationsViewModel>().LoadChannelsPlease(true);
+        await LoadChannels();
     }
 
     private static readonly IHost _host = Host
@@ -115,7 +130,6 @@ public partial class App : Application
         services.AddScoped<MainViewModel>();
 
         services.AddScoped<Views.StationsPage>();
-        services.AddScoped<StationsViewModel>();
 
         services.AddScoped<Views.NowPlayingPage>();
         services.AddScoped<NowPlayingViewModel>();
