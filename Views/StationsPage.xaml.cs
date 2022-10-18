@@ -119,7 +119,7 @@ public partial class StationsPage
         }
         if(chanPanel != null)
         {
-            chanPanel.Items.Refresh();
+            //chanPanel.Items.Refresh();
         }
     }
 
@@ -150,7 +150,7 @@ public partial class StationsPage
         }
         catch(Exception ex)
         {
-            return;
+            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
         }
     }
 
@@ -185,13 +185,6 @@ public partial class StationsPage
             }
             App.MySettings.SaveToFile();
 
-            //var query = App.CachedChannelList.OrderByDescending(a => a.IsFavorite).ThenByDescending(a => a.Family).ToList();
-            //App.CachedChannelList.Clear();
-            //foreach (var chan in query)
-            //{
-            //    App.CachedChannelList.Add(chan);
-            //}
-
             var currentIndex = App.CachedChannelList.IndexOf(model);
             int newIndex = 0;
             if(prevState == true)
@@ -200,35 +193,10 @@ public partial class StationsPage
                 newIndex = query.IndexOf(model);
             }
             App.CachedChannelList.Move(currentIndex, newIndex);
-
-            //var query = App.CachedChannelList.Select((item, index) => (Item: item, Index: index));
-            //var queryT = query.OrderByDescending(a => a.Item.IsFavorite).ThenByDescending(a => a.Item.Family).Select((item, index) => (Item: item, Index: index));
-            //query = query.OrderByDescending(a => a.Item.IsFavorite).ThenByDescending(a => a.Item.Family);
-
-            //var map = query.Select((tuple, index) => (OldIndex: tuple.Index, NewIndex: index)).Where(o => o.OldIndex != o.NewIndex);
-            //var map = queryT.Select((tuple, index) => (OldIndex: tuple.oldIndex, NewIndex: tuple.newIndex)).Where(o => o.OldIndex != o.NewIndex);
-            //using(var enumerator = map.GetEnumerator())
-            //{
-            //    while(enumerator.MoveNext())
-            //    {
-            //        App.CachedChannelList.Move(enumerator.Current.OldIndex, enumerator.Current.NewIndex);
-            //        if(enumerator.Current.OldIndex != enumerator.Current.NewIndex)
-            //        {
-            //        }
-            //    }
-            //}
-
-            //if(model.IsFavorite)
-            //{
-            //    App.CachedChannelList.Move(App.CachedChannelList.IndexOf(model), 0);
-            //}
-            //else if(chanPanel != null && !model.IsFavorite)
-            //{
-            //    chanPanel.Items.Refresh();
-            //}
         }
         catch(Exception ex)
         {
+            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
         }
     }
 }
