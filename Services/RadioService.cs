@@ -68,7 +68,10 @@ public class RadioService : IDisposable
         {
             Task.Delay(100).Wait();
             if(sw.Elapsed.TotalMinutes == 1)
-            {// Something has gone very wrong.  Break out && let them start over.
+            {// Something has gone very wrong.  Break out && let them start over if possible
+                Running = false;
+                GetTrackDataRunning = false;
+                SaveTrackRunning = false;
                 sw.Stop();
                 return;
             }
