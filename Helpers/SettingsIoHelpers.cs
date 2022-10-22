@@ -178,7 +178,7 @@ public static class SettingsIoHelpers
         }
     }
 
-    static string GetFileContents(string fileName)
+    public static string GetFileContents(string fileName)
     {
         string basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Ripshout\\";
         if(!File.Exists(basePath + fileName))
@@ -192,7 +192,7 @@ public static class SettingsIoHelpers
         }
     }
 
-    static int GetFileAgeInDays(string fileName)
+    public static int GetFileAgeInDays(string fileName)
     {
         int daysOld = -1;
         string basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Ripshout\\";
@@ -207,7 +207,7 @@ public static class SettingsIoHelpers
         }
     }
 
-    static void WriteFile(string filename, string contents)
+    public static void WriteFile(string filename, string contents)
     {
         string basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Ripshout\\";
         if(!Directory.Exists(basePath))

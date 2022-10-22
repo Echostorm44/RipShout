@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml" 
     ExtendsContentIntoTitleBar="True" Closing="UiWindow_Closing"
-    WindowBackdropType="Mica" Loaded="UiWindow_Loaded"
+    WindowBackdropType="Mica" Loaded="UiWindow_Loaded" SourceInitialized="UiWindow_SourceInitialized"
     WindowCornerPreference="Round"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">

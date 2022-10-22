@@ -7,6 +7,8 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Images\app.ico</ApplicationIcon>
     <StartupObject></StartupObject>
+    <SignAssembly>True</SignAssembly>
+    <DelaySign>False</DelaySign>
   </PropertyGroup>
 
   <ItemGroup>
