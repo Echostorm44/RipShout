@@ -164,7 +164,7 @@ public class RadioService : IDisposable
             {
                 Directory.CreateDirectory(folderPath);
             }
-            string mp3Path = CheckPathForDupesAndIncIfNeeded(folderPath + "\\" + trackData.SongName + ".mp3");
+            string mp3Path = CheckPathForDupesAndIncIfNeeded(folderPath + "\\" + trackData.ArtistName + " - " + trackData.SongName + ".mp3");
 
             using(var reader = new MediaFoundationReader(filePath))
             {
