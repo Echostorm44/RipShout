@@ -1,1 +1,1 @@
-﻿1.0.5|https://github.com/Echostorm44/RipShout/releases/download/1.0.5/SetupRipShout.msi
+﻿1.0.6|https://github.com/Echostorm44/RipShout/releases/download/1.0.6/SetupRipShout.msi
