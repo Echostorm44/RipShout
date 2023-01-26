@@ -1,5 +1,5 @@
 # RipShout
-[<img src="https://img.shields.io/badge/release-1.0.6-blue">](https://github.com/Echostorm44/RipShout/releases)
+[<img src="https://img.shields.io/badge/release-1.0.7-blue">](https://github.com/Echostorm44/RipShout/releases)
 
 A ShoutCast Internet Radio Stream Player, Ripper, Best Friend.
 
@@ -14,7 +14,7 @@ A ShoutCast Internet Radio Stream Player, Ripper, Best Friend.
 
 # Installing
 
-You can install by simply [downloading the msi](https://github.com/Echostorm44/RipShout/releases/download/1.0.6/SetupRipShout.msi) from the release page
+You can install by simply [downloading the msi](https://github.com/Echostorm44/RipShout/releases/download/1.0.7/SetupRipShout.msi) from the release page
 
 Via [WinGet](https://github.com/microsoft/winget-cli):
 
