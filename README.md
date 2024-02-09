@@ -29,7 +29,8 @@ winget install FleetingClarityStudios.RipShout
 
 ![image](https://github.com/Echostorm44/RipShout/assets/107306362/800937fd-f2bd-4414-b75d-c3543c2682ec)
 
-![image](https://github.com/Echostorm44/RipShout/assets/107306362/e7c29302-aad8-43d9-bef3-8da652f26306)
+![image](https://github.com/Echostorm44/RipShout/assets/107306362/39646da8-753b-4e48-91ab-f642f36f50ed)
+
 
 ![image](https://user-images.githubusercontent.com/107306362/195997521-4b050dae-aaa2-48ff-9aa9-85e823a3b6ad.png)
 
