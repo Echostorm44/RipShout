@@ -49,7 +49,7 @@ public partial class App : Application
     public static async Task<bool> LoadChannels()
     {
         CachedChannelList.Clear();
-        if(CachedChannelList.Count != 0 && App.CachedChannelListConfig == (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
+        if (CachedChannelList.Count != 0 && App.CachedChannelListConfig == (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
                         App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.ShowOneFmChannels))
         {
             // Nothing to do, bail
@@ -63,25 +63,25 @@ public partial class App : Application
                 var channelList = new List<ChannelModel>();
                 var tempAaChans = await AudioAddictChannelServices.AudioAddictGetChannelsService.GetChannelsAsync(App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
                 App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.FavoriteIDs);
-                foreach(var aaChan in tempAaChans)
+                foreach (var aaChan in tempAaChans)
                 {
                     aaChan.IsFavorite = MySettings.FavoriteIDs.Contains(aaChan.ID);
                     channelList.Add(aaChan);
                 }
                 // Add oneFm to chans
-                if(MySettings.ShowOneFmChannels)
+                if (MySettings.ShowOneFmChannels)
                 {
                     var oneFMChans = await OneFmChannelServices.OneFmGetStationsService.GetChannelsAsync(App.MySettings.FavoriteIDs);
-                    if(oneFMChans != null)
+                    if (oneFMChans != null)
                     {
-                        foreach(var oneChan in oneFMChans)
+                        foreach (var oneChan in oneFMChans)
                         {
                             oneChan.IsFavorite = MySettings.FavoriteIDs.Contains(oneChan.ID);
                             channelList.Add(oneChan);
                         }
                     }
                 }
-                foreach(var item in channelList.OrderByDescending(a => a.IsFavorite).ThenByDescending(a => a.Family))
+                foreach (var item in channelList.OrderByDescending(a => a.IsFavorite).ThenByDescending(a => a.Family))
                 {
                     CachedChannelList.Add(item);
                 }
@@ -123,17 +123,13 @@ public partial class App : Application
         services.AddSingleton<IThemeService, ThemeService>();
         services.AddSingleton<ISnackbarService, SnackbarService>();
         services.AddSingleton<IPageService, PageService>();
-
         services.AddSingleton<INavigationService, NavigationService>();
 
         services.AddScoped<INavigationWindow, MainWindow>();
         services.AddScoped<MainViewModel>();
-
         services.AddScoped<Views.StationsPage>();
-
         services.AddScoped<Views.NowPlayingPage>();
         services.AddScoped<NowPlayingViewModel>();
-
         services.AddScoped<Views.SettingsPage>();
         services.AddScoped<SettingsViewModel>();
 
@@ -167,13 +163,13 @@ public partial class App : Application
     {
         MyRadio.Dispose();
 
-        foreach(var doomedFolder in Directory.EnumerateDirectories(MySettings.SaveTempMusicToFolder))
+        foreach (var doomedFolder in Directory.EnumerateDirectories(MySettings.SaveTempMusicToFolder))
         {
             try
             {// TODO this needs a beat for the stream to close || it won't be able to access
                 Directory.Delete(doomedFolder, true);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
             }

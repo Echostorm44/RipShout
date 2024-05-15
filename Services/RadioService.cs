@@ -164,7 +164,7 @@ public class RadioService : IDisposable
             {
                 Directory.CreateDirectory(folderPath);
             }
-            string mp3Path = CheckPathForDupesAndIncIfNeeded(folderPath + "\\" + trackData.ArtistName + " - " + trackData.SongName + ".mp3");
+            string mp3Path = folderPath + "\\" + trackData.ArtistName + " - " + trackData.SongName + ".mp3";
 
             using(var reader = new MediaFoundationReader(filePath))
             {
@@ -431,46 +431,10 @@ public class RadioService : IDisposable
         }
     }
 
-
     private string GetSongSavePath(string rootPath, string cleanTitle, string cleanGenre, bool isFrontCut)
     {
         var tempPath = rootPath + @"\" + cleanGenre + @"\" + (isFrontCut ? @"[Front-Cut]" : "") + cleanTitle + ".mp3";
-        return CheckPathForDupesAndIncIfNeeded(tempPath);
-    }
-
-    public static string CheckPathForDupesAndIncIfNeeded(string filePath)
-    {
-        try
-        {
-            if(File.Exists(filePath))
-            {
-                string folderPath = Path.GetDirectoryName(filePath);
-                string fileName = Path.GetFileNameWithoutExtension(filePath);
-                string fileExtension = Path.GetExtension(filePath);
-                int number = 1;
-
-                Match regex = Regex.Match(fileName, @"^(.+)\((\d+)\)$");
-
-                if(regex.Success)
-                {
-                    fileName = regex.Groups[1].Value;
-                    number = int.Parse(regex.Groups[2].Value);
-                }
-
-                do
-                {
-                    number++;
-                    string newFileName = $"{fileName}({number}){fileExtension}";
-                    filePath = Path.Combine(folderPath, newFileName);
-                }
-                while (File.Exists(filePath));
-            }
-        }
-        catch(Exception ex)
-        {
-            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
-        }
-        return filePath;
+        return tempPath;
     }
 
     public void Dispose()

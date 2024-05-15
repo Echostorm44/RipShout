@@ -12,7 +12,6 @@ namespace RipShout.Services;
 
 
 
-
 public delegate void StreamTitleChangedHandler(object source, string title, string genre, string bitrate, string extension);
 
 public class ShoutCastStream : Stream
@@ -66,6 +65,7 @@ public class ShoutCastStream : Stream
                 Method = HttpMethod.Get,
             };
             request.Headers.Add("Icy-MetaData", "1");
+            request.Headers.Add("User-Agent", "Mozilla/5.0");
 
             await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ContinueWith((tm) =>
             {
@@ -148,26 +148,62 @@ public class ShoutCastStream : Stream
     /// <summary>
     /// Gets a value that indicates whether the ShoutcastStream supports reading.
     /// </summary>
-    public override bool CanRead { get { return connected; } }
+    public override bool CanRead
+    {
+        get
+        {
+            return connected;
+        }
+    }
 
     /// <summary>
     /// Gets a value that indicates whether the ShoutcastStream supports seeking. This property will always be false.
     /// </summary>
-    public override bool CanSeek { get { return false; } }
+    public override bool CanSeek
+    {
+        get
+        {
+            return false;
+        }
+    }
 
     /// <summary>
     /// Gets a value that indicates whether the ShoutcastStream supports writing. This property will always be false.
     /// </summary>
-    public override bool CanWrite { get { return false; } }
+    public override bool CanWrite
+    {
+        get
+        {
+            return false;
+        }
+    }
 
     /// <summary>
     /// Gets the title of the stream
     /// </summary>
-    public string StreamTitle { get { return streamTitle; } }
+    public string StreamTitle
+    {
+        get
+        {
+            return streamTitle;
+        }
+    }
 
-    public string BitRate { get { return bitRate; } }
+    public string BitRate
+    {
+        get
+        {
+            return bitRate;
+        }
+    }
 
-    public string StreamGenre { get { return streamGenre; } }
+    public string StreamGenre
+    {
+        get
+        {
+            return streamGenre;
+        }
+    }
 
     /// <summary>
     /// Flushes data from the stream. This method is currently not supported
@@ -181,7 +217,13 @@ public class ShoutCastStream : Stream
     /// Gets the length of the data available on the Stream. This property is not currently supported and always thows a
     /// <see cref="NotSupportedException"/>.
     /// </summary>
-    public override long Length { get { throw new NotSupportedException(); } }
+    public override long Length
+    {
+        get
+        {
+            throw new NotSupportedException();
+        }
+    }
 
     /// <summary>
     /// Gets or sets the current position in the stream. This property is not currently supported and always thows a
@@ -189,8 +231,14 @@ public class ShoutCastStream : Stream
     /// </summary>
     public override long Position
     {
-        get { throw new NotSupportedException(); }
-        set { throw new NotSupportedException(); }
+        get
+        {
+            throw new NotSupportedException();
+        }
+        set
+        {
+            throw new NotSupportedException();
+        }
     }
 
     /// <summary>
