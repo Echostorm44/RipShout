@@ -44,6 +44,6 @@
                 <ui:SymbolIcon Symbol="Folder32" FontSize="26" VerticalAlignment="Top"></ui:SymbolIcon>
             </Button>
         </StackPanel>
-        <Slider Maximum="1" TickFrequency="0.01" TickPlacement="None" Value="{Binding PlayerVolume, Mode=TwoWay}" Grid.Row="5" Grid.Column="1" />
+        <Slider Maximum="1" Width="200" TickFrequency="0.01" TickPlacement="None" Value="{Binding PlayerVolume, Mode=TwoWay}" Grid.Row="5" Grid.Column="1" />
     </Grid>    
 </ui:UiPage>
