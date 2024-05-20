@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RipShout.Services;
@@ -24,6 +25,16 @@ public class ShoutCastStream : Stream
     private string streamTitle = "NA";
     private string bitRate = "NA";
     public string AudioEncodeType = "aac";
+    public List<byte> BytesToWrite = new List<byte>();
+    public bool IsFrontCut = true;
+
+    private int read;
+    private int leftToRead;
+    private int thisOffset;
+    private int bytesRead;
+    private int bytesLeftToMeta;
+    private int metaLen;
+    private byte[] metaInfo;
 
     /// <summary>
     /// Is fired when a new StreamTitle is received
@@ -39,7 +50,6 @@ public class ShoutCastStream : Stream
             //@"((http|ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?)",
             //    "<a target='_blank' href='$1'>$1</a>");
         }
-
         var isStreamRunning = await GetStreamRunning(url);
         if(netStream == null && !string.IsNullOrEmpty(backupURL))
         {
@@ -65,7 +75,7 @@ public class ShoutCastStream : Stream
                 Method = HttpMethod.Get,
             };
             request.Headers.Add("Icy-MetaData", "1");
-            request.Headers.Add("User-Agent", "Mozilla/5.0");
+            request.Headers.Add("User-Agent", "VLC Media Player");
 
             await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ContinueWith((tm) =>
             {
@@ -127,8 +137,23 @@ public class ShoutCastStream : Stream
         string metaString = Encoding.ASCII.GetString(metaInfo);
 
         string newStreamTitle = Regex.Match(metaString, "(StreamTitle=')(.*)?'").Groups[2].Value.Trim();
+
         if(!newStreamTitle.Equals(streamTitle))
         {
+            if(BytesToWrite.Count > 16000)
+            {
+                if(!Directory.Exists(App.MySettings.SaveTempMusicToFolder + @"\" + Regex.Replace(StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\"))
+                {
+                    Directory.CreateDirectory(App.MySettings.SaveTempMusicToFolder + @"\" + Regex.Replace(StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\");
+                }
+                var targetFileName = App.MySettings.SaveTempMusicToFolder + @"\" +
+                    Regex.Replace(StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\" + 
+                    (IsFrontCut ? @"[Front-Cut]" : "") +
+                    streamTitle + ".mp3";
+
+                File.WriteAllBytes(targetFileName, BytesToWrite.ToArray());
+                BytesToWrite.Clear();
+            }
             streamTitle = newStreamTitle;
             OnStreamTitleChanged();
         }
@@ -241,13 +266,6 @@ public class ShoutCastStream : Stream
         }
     }
 
-    /// <summary>
-    /// Reads data from the ShoutcastStream.
-    /// </summary>
-    /// <param name="buffer">An array of bytes to store the received data from the ShoutcastStream.</param>
-    /// <param name="offset">The location in the buffer to begin storing the data to.</param>
-    /// <param name="count">The number of bytes to read from the ShoutcastStream.</param>
-    /// <returns>The number of bytes read from the ShoutcastStream.</returns>
     public override int Read(byte[] buffer, int offset, int count)
     {
         try
@@ -257,28 +275,28 @@ public class ShoutCastStream : Stream
                 connected = false;
                 return -1;
             }
+            // Shoutcast sends [AudioData packet metaint size], [metadata metaLen size], [AudioData packet metaint size],
+            // [metadata metaLen size] && so on. The metadata is sent every 16,000 bytes of audio data.
+
             if(receivedBytes == metaInt)//if(receivedBytes == 16000)
             {
                 int metaLen = netStream.ReadByte();
                 if(metaLen > 0)
                 {
                     byte[] metaInfo = new byte[metaLen * 16];
-                    int len = 0;
-                    while((len += netStream.Read(metaInfo, len, metaInfo.Length - len)) < metaInfo.Length)
-                    {
-                        ;
-                    }
-                    ParseMetaInfo(metaInfo);
+                    netStream.Read(metaInfo, 0, metaInfo.Length);
+                    Task.Run(() => ParseMetaInfo(metaInfo));
                 }
                 receivedBytes = 0;
             }
 
             int bytesLeft = ((metaInt - receivedBytes) > count) ? count : (metaInt - receivedBytes);
             int result = netStream.Read(buffer, offset, bytesLeft);
+            BytesToWrite.AddRange(buffer.Take(result));
             receivedBytes += result;
             return result;
         }
-        catch(Exception)
+        catch(Exception ex)
         {
             connected = false;
             return -1;
@@ -286,8 +304,53 @@ public class ShoutCastStream : Stream
     }
 
     /// <summary>
-    /// Closes the ShoutcastStream.
+    /// Reads data from the ShoutcastStream.
     /// </summary>
+    /// <param name="buffer">An array of bytes to store the received data from the ShoutcastStream.</param>
+    /// <param name="offset">The location in the buffer to begin storing the data to.</param>
+    /// <param name="count">The number of bytes to read from the ShoutcastStream.</param>
+    /// <returns>The number of bytes read from the ShoutcastStream.</returns>
+    //public override int Read(byte[] buffer, int offset, int count)
+    //{
+    //    try
+    //    {
+    //        if(netStream == null)
+    //        {
+    //            connected = false;
+    //            return -1;
+    //        }
+    //        if(receivedBytes == metaInt)//if(receivedBytes == 16000)
+    //        {
+    //            int metaLen = netStream.ReadByte();
+    //            if(metaLen > 0)
+    //            {
+    //                byte[] metaInfo = new byte[metaLen * 16];
+    //                int len = 0;
+    //                while((len += netStream.Read(metaInfo, len, metaInfo.Length - len)) < metaInfo.Length)
+    //                {
+    //                    ;
+    //                }
+    //                ParseMetaInfo(metaInfo);
+    //            }
+    //            receivedBytes = 0;
+    //        }
+
+    //        int bytesLeft = ((metaInt - receivedBytes) > count) ? count : (metaInt - receivedBytes);
+    //        int result = netStream.Read(buffer, offset, bytesLeft);
+    //        BytesToWrite.AddRange(buffer.Take(result));
+    //        receivedBytes += result;
+    //        return result;
+    //    }
+    //    catch(Exception ex)
+    //    {
+    //        connected = false;
+    //        return -1;
+    //    }
+    //}
+
+    /// <summary>
+/// Closes the ShoutcastStream.
+/// </summary>
     public override void Close()
     {
         connected = false;
