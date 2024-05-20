@@ -339,13 +339,15 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
+    <PackageReference Include="LibVLCSharp" Version="3.8.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="MusicBrainzAPI" Version="2.5.0" />
-    <PackageReference Include="NAudio" Version="2.1.0" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="RestSharp" Version="108.0.2" />
     <PackageReference Include="Svg" Version="3.4.3" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.20" />
     <PackageReference Include="WPF-UI" Version="2.0.3" />
   </ItemGroup>
 

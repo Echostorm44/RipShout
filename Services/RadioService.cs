@@ -1,4 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
+using Fizzler;
+using Hqub.MusicBrainz.API.Entities;
+using LibVLCSharp.Shared;
+using NAudio.Gui;
 using NAudio.Wave;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -15,7 +19,9 @@ using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Media;
 using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -23,6 +29,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Wpf.Ui.Controls;
 
@@ -34,10 +41,10 @@ public class RadioService : IDisposable
     public bool Running { get; set; }
     public bool SaveTrackRunning { get; set; }
     public bool GetTrackDataRunning { get; set; }
-    public MediaPlayer MediaPlaya { get; set; }
+    public System.Windows.Media.MediaPlayer MediaPlaya { get; set; }
     int currentSongID = 0;
     Stream? byteOut;
-    byte[] buffer = new byte[512];
+    byte[] buffer = new byte[16000];
     bool isFrontCut = true;
     string workingPath = "";
     double totByteCount;
@@ -49,7 +56,7 @@ public class RadioService : IDisposable
     {
         CurrentShoutCastStream = new ShoutCastStream();
         currentSongDetails = new SongDetailsModel();
-        MediaPlaya = new MediaPlayer();
+        MediaPlaya = new System.Windows.Media.MediaPlayer();
         MediaPlaya.Volume = App.MySettings.PlayerVolume;
         Running = false;
     }
@@ -77,14 +84,10 @@ public class RadioService : IDisposable
             }
         }
         CurrentShoutCastStream = new ShoutCastStream();
-        MediaPlaya.Stop();
-        MediaPlaya.Close();
-        MediaPlaya.Volume = App.MySettings.PlayerVolume;
-        MediaPlaya.Open(new Uri(url));
-        MediaPlaya.Play();
+
         workSwitch = true;
 
-        Task.Factory.StartNew(() =>
+        Task.Factory.StartNew(async () =>
         {
             try
             {
@@ -97,36 +100,72 @@ public class RadioService : IDisposable
                     throw new Exception("Couldn't start stream");
                 }
                 CurrentShoutCastStream.StreamTitleChanged += new StreamTitleChangedHandler(scS_StreamTitleChanged);
-                if(!Directory.Exists(App.MySettings.SaveTempMusicToFolder + @"\" + Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\"))
-                {
-                    Directory.CreateDirectory(App.MySettings.SaveTempMusicToFolder + @"\" + Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\");
-                }
-                byteOut = new FileStream(App.MySettings.SaveTempMusicToFolder + @"\" +
-                    Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\" + @"[Front-Cut]" +
-                    CurrentShoutCastStream.StreamTitle + ".mp3", FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
+                //if(!Directory.Exists(App.MySettings.SaveTempMusicToFolder + @"\" + Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\"))
+                //{
+                //    Directory.CreateDirectory(App.MySettings.SaveTempMusicToFolder + @"\" + Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\");
+                //}
+                //byteOut = new FileStream(App.MySettings.SaveTempMusicToFolder + @"\" +
+                //    Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\" + @"[Front-Cut]" +
+                //    CurrentShoutCastStream.StreamTitle + ".mp3", FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
 
                 SetCurrentSongDataToStopped();
 
-                while(workSwitch)
+                Core.Initialize();
+
+                using(var libVLC = new LibVLC(enableDebugLogs: true, "--no-video", "--network-caching=4000"))
                 {
-                    int bytes = CurrentShoutCastStream.Read(buffer, 0, buffer.Length);
-
-                    if(bytes <= 0)
+                    libVLC.Log += (s, e) =>
                     {
-                        SetCurrentSongDataToStopped();
-                        WeakReferenceMessenger.Default.Send(new CurrentStreamStatsChangedMessage(currentSongDetails));
-                        isFrontCut = false;
-                        return;
-                    }
-
-                    for(int i = 0; i < bytes; i++)
+                        Trace.WriteLine($"[{e.Level}] {e.Module}:{e.Message}");
+                    };
+                    using(var mediaPlayer = new LibVLCSharp.Shared.MediaPlayer(libVLC))
                     {
-                        byteOut.Write(buffer, i, 1);
+                        mediaPlayer.Volume = 100;
+                        using(var media = new Media(libVLC, new StreamMediaInput(CurrentShoutCastStream)))
+                        {
+                            media.AddOption(":no-video");
+                            media.AddOption(":network-caching=4000");
+                            mediaPlayer.Media = media;
+                            mediaPlayer.Play();
+
+                            while(workSwitch)
+                            {
+                                await Task.Delay(1000);
+                                currentSongDetails.BytesRead = CurrentShoutCastStream.BytesToWrite.Count;
+                                WeakReferenceMessenger.Default.Send(new CurrentStreamStatsChangedMessage(currentSongDetails));
+                            }
+                        }
                     }
-                    totByteCount += bytes;
-                    currentSongDetails.BytesRead = (int)totByteCount;
-                    WeakReferenceMessenger.Default.Send(new CurrentStreamStatsChangedMessage(currentSongDetails));
                 }
+
+#region Old
+
+                //while(workSwitch)
+                //{
+                //    int bytes = CurrentShoutCastStream.Read(buffer, 0, buffer.Length);
+
+                //    if(bytes <= 0)
+                //    {
+                //        SetCurrentSongDataToStopped();
+                //        WeakReferenceMessenger.Default.Send(new CurrentStreamStatsChangedMessage(currentSongDetails));
+                //        isFrontCut = false;
+                //        return;
+                //    }
+
+                //    //for(int i = 0; i < bytes; i++)
+                //    //{
+                //    //    byteOut.Write(buffer, i, 1);
+                //    //}
+                //    bufferedWaveProvider.AddSamples(buffer, 0, bytes);
+                //    ms.Write(buffer, 0, bytes);
+                //    ms.CopyTo(byteOut);
+
+                //    totByteCount += bytes;
+                //    currentSongDetails.BytesRead = (int)totByteCount;
+                //    WeakReferenceMessenger.Default.Send(new CurrentStreamStatsChangedMessage(currentSongDetails));
+                //}
+
+                #endregion
             }
             catch(Exception ex)
             {
@@ -141,6 +180,7 @@ public class RadioService : IDisposable
                     byteOut.Dispose();
                 }
                 isFrontCut = true;
+                CurrentShoutCastStream.IsFrontCut = true;
                 CurrentShoutCastStream.StreamTitleChanged -= new StreamTitleChangedHandler(scS_StreamTitleChanged);
                 Running = false;
             }
@@ -227,13 +267,7 @@ public class RadioService : IDisposable
         string cleanTitle = "";
         try
         {
-            // Close the last song
-            if(byteOut != null)
-            {
-                byteOut.Flush();
-                byteOut.Close();
-            }
-
+            string Path1 = "c:\\test\\test.tmp";
             if(!string.IsNullOrEmpty(workingPath))
             {   // Convert if it needs it   
                 var lastTrack = currentSongDetails.DeepCopy();
@@ -260,8 +294,9 @@ public class RadioService : IDisposable
             if(isFrontCut)
             {
                 workingPath = GetSongSavePath(App.MySettings.SaveTempMusicToFolder, cleanTitle, cleanGenre, true);
-                byteOut = new FileStream(workingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
+                //byteOut = new FileStream(workingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
                 isFrontCut = false;
+                CurrentShoutCastStream.IsFrontCut = false;
                 if(cleanTitle.Length > 0)
                 {
                     lastTitle = cleanTitle;
@@ -270,7 +305,7 @@ public class RadioService : IDisposable
             else
             {
                 string newPath = GetSongSavePath(App.MySettings.SaveTempMusicToFolder, cleanTitle, cleanGenre, false);
-                byteOut = new FileStream(newPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
+                //byteOut = new FileStream(newPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
                 workingPath = newPath;
                 lastTitle = cleanTitle;
             }
