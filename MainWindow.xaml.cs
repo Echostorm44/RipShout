@@ -35,6 +35,7 @@ using Wpf.Ui.Interop.WinDef;
 using Wpf.Ui.Mvvm.Contracts;
 using Wpf.Ui.Mvvm.Services;
 using Wpf.Ui.TaskBar;
+using static CommunityToolkit.Mvvm.ComponentModel.__Internals.__TaskExtensions.TaskAwaitableWithoutEndValidation;
 
 namespace RipShout;
 
@@ -138,7 +139,7 @@ public partial class MainWindow : INavigationWindow
     private void UiWindow_Loaded(object sender, RoutedEventArgs e)
     {
         InvokeSplashScreen();
-        Test();
+        //Test();
     }
 
     #region This was a test to get the audio from the sound card output because DI / RadioTunes doesn't
@@ -237,119 +238,124 @@ public partial class MainWindow : INavigationWindow
 
     #endregion
 
-    void Test()
-    {
-        var url = "http://prem4.radiotunes.com:80/the80s?fd1ce46ac9b3ce6b357cb5c1";
-        Core.Initialize();
+    #region A test of how to do all this with one stream because of audioaddict limiting premimum accounts 1 stream at a time
 
-        using(var libVLC = new LibVLC(enableDebugLogs: true, "--no-video", "--network-caching=4000"))
-        {
-            libVLC.Log += (s, e) =>
-            {
-                Trace.WriteLine($"[{e.Level}] {e.Module}:{e.Message}");
-            };
-            using(var mediaPlayer = new LibVLCSharp.Shared.MediaPlayer(libVLC))
-            {
-                mediaPlayer.Volume = 100;
-                using(var media = new Media(libVLC, new Uri(url)))
-                {
-                    media.AddOption(":no-video");
-                    media.AddOption(":network-caching=4000");
-                    mediaPlayer.Media = media;
+    //void Test()
+    //{
+    //    var url = "http://prem4.radiotunes.com:80/the80s?fd1ce46ac9b3ce6b357cb5c1";
+    //    Core.Initialize();
 
-                    var outputFolder = "c:\\Test\\";
-                    var outputFilePath = System.IO.Path.Combine(outputFolder, "frontCut.wav");
+    //    using(var libVLC = new LibVLC(enableDebugLogs: true, "--no-video", "--network-caching=4000"))
+    //    {
+    //        libVLC.Log += (s, e) =>
+    //        {
+    //            Trace.WriteLine($"[{e.Level}] {e.Module}:{e.Message}");
+    //        };
+    //        using(var mediaPlayer = new LibVLCSharp.Shared.MediaPlayer(libVLC))
+    //        {
+    //            mediaPlayer.Volume = 100;
+    //            using(var media = new Media(libVLC, new Uri(url)))
+    //            {
+    //                media.AddOption(":no-video");
+    //                media.AddOption(":network-caching=4000");
+    //                mediaPlayer.Media = media;
 
-                    using var outputDevice = new WaveOutEvent();
-                    var waveFormat = new WaveFormat(8000, 16, 1);
-                    var writer = new WaveFileWriter(outputFilePath, waveFormat);
-                    var waveProvider = new BufferedWaveProvider(waveFormat);
-                    outputDevice.Init(waveProvider);
+    //                var outputFolder = "c:\\Test\\";
+    //                var outputFilePath = System.IO.Path.Combine(outputFolder, "frontCut.wav");
 
-                    mediaPlayer.SetAudioFormatCallback(AudioSetup, AudioCleanup);
-                    mediaPlayer.SetAudioCallbacks(PlayAudio, PauseAudio, ResumeAudio, FlushAudio, DrainAudio);
+    //                using var outputDevice = new WaveOutEvent();
+    //                var waveFormat = new WaveFormat(8000, 16, 1);
+    //                var writer = new WaveFileWriter(outputFilePath, waveFormat);
+    //                var waveProvider = new BufferedWaveProvider(waveFormat);
+    //                outputDevice.Init(waveProvider);
 
-                    mediaPlayer.Play();
-                    outputDevice.Play();
-                    var currentTitle = "frontCut";
-                    bool isFrontCut = true;
-                    while(true)
-                    {
-                        Thread.Sleep(500);
-                        var foo5 = media.Meta(MetadataType.NowPlaying);
-                        if(!string.IsNullOrEmpty(foo5))
-                        {
-                            if(foo5 != currentTitle)
-                            {
-                                writer.Flush();
-                                waveProvider.ClearBuffer();
-                                writer.Dispose();
-                                outputFilePath = System.IO.Path.Combine(outputFolder, foo5 + ".wav");
-                                writer = new WaveFileWriter(outputFilePath, waveFormat);
+    //                mediaPlayer.SetAudioFormatCallback(AudioSetup, AudioCleanup);
+    //                mediaPlayer.SetAudioCallbacks(PlayAudio, PauseAudio, ResumeAudio, FlushAudio, DrainAudio);
 
-                                if(currentTitle != "frontCut")
-                                {
-                                    outputFilePath = System.IO.Path.Combine(outputFolder, currentTitle + ".wav");
-                                    if(isFrontCut)
-                                    {
-                                        currentTitle = "[FrontCut]" + currentTitle;
-                                    }
-                                    var mp3Path = System.IO.Path.Combine(outputFolder, currentTitle + ".mp3");
-                                    using(var reader = new WaveFileReader(outputFilePath))
-                                    {
-                                        MediaFoundationEncoder.EncodeToMp3(reader, mp3Path);
-                                    }
-                                    isFrontCut = false;
-                                }
-                                currentTitle = foo5;
-                            }
-                        }
-                    }
-                    void PlayAudio(IntPtr data, IntPtr samples, uint count, long pts)
-                    {
-                        int bytes = (int)count * 2; // (16 bit, 1 channel)
-                        var buffer = new byte[bytes];
-                        Marshal.Copy(samples, buffer, 0, bytes);
+    //                mediaPlayer.Play();
+    //                outputDevice.Play();
+    //                var currentTitle = "frontCut";
+    //                bool isFrontCut = true;
+    //                while(true)
+    //                {
+    //                    Thread.Sleep(500);
+    //                    var foo5 = media.Meta(MetadataType.NowPlaying);
+    //                    var foo56 = media.Meta(MetadataType.Genre);
+    //                    if(!string.IsNullOrEmpty(foo5))
+    //                    {
+    //                        if(foo5 != currentTitle)
+    //                        {
+    //                            writer.Flush();
+    //                            waveProvider.ClearBuffer();
+    //                            writer.Dispose();
+    //                            outputFilePath = System.IO.Path.Combine(outputFolder, foo5 + ".wav");
+    //                            writer = new WaveFileWriter(outputFilePath, waveFormat);
 
-                        waveProvider.AddSamples(buffer, 0, bytes);
-                        writer.Write(buffer, 0, bytes);
-                    }
+    //                            if(currentTitle != "frontCut")
+    //                            {
+    //                                outputFilePath = System.IO.Path.Combine(outputFolder, currentTitle + ".wav");
+    //                                if(isFrontCut)
+    //                                {
+    //                                    currentTitle = "[FrontCut]" + currentTitle;
+    //                                }
+    //                                var mp3Path = System.IO.Path.Combine(outputFolder, currentTitle + ".mp3");
+    //                                using(var reader = new WaveFileReader(outputFilePath))
+    //                                {
+    //                                    MediaFoundationEncoder.EncodeToMp3(reader, mp3Path);
+    //                                }
+    //                                isFrontCut = false;
+    //                            }
+    //                            currentTitle = foo5;
+    //                        }
+    //                    }
+    //                }
+    //                void PlayAudio(IntPtr data, IntPtr samples, uint count, long pts)
+    //                {
+    //                    int bytes = (int)count * 2; // (16 bit, 1 channel)
+    //                    var buffer = new byte[bytes];
+    //                    Marshal.Copy(samples, buffer, 0, bytes);
 
-                    int AudioSetup(ref IntPtr opaque, ref IntPtr format, ref uint rate, ref uint channels)
-                    {
-                        channels = (uint)waveFormat.Channels;
-                        rate = (uint)waveFormat.SampleRate;
-                        return 0;
-                    }
+    //                    waveProvider.AddSamples(buffer, 0, bytes);
+    //                    writer.Write(buffer, 0, bytes);
+    //                }
 
-                    void DrainAudio(IntPtr data)
-                    {
-                        writer.Flush();
-                    }
+    //                int AudioSetup(ref IntPtr opaque, ref IntPtr format, ref uint rate, ref uint channels)
+    //                {
+    //                    channels = (uint)waveFormat.Channels;
+    //                    rate = (uint)waveFormat.SampleRate;
+    //                    return 0;
+    //                }
 
-                    void FlushAudio(IntPtr data, long pts)
-                    {
-                        writer.Flush();
-                        waveProvider.ClearBuffer();
-                    }
+    //                void DrainAudio(IntPtr data)
+    //                {
+    //                    writer.Flush();
+    //                }
 
-                    void ResumeAudio(IntPtr data, long pts)
-                    {
-                        outputDevice.Play();
-                    }
+    //                void FlushAudio(IntPtr data, long pts)
+    //                {
+    //                    writer.Flush();
+    //                    waveProvider.ClearBuffer();
+    //                }
 
-                    void PauseAudio(IntPtr data, long pts)
-                    {
-                        outputDevice.Pause();
-                    }
+    //                void ResumeAudio(IntPtr data, long pts)
+    //                {
+    //                    outputDevice.Play();
+    //                }
 
-                    void AudioCleanup(IntPtr opaque)
-                    {
-                    }
-                }
-            }
-        }
-    }
+    //                void PauseAudio(IntPtr data, long pts)
+    //                {
+    //                    outputDevice.Pause();
+    //                }
+
+    //                void AudioCleanup(IntPtr opaque)
+    //                {
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
+
+    #endregion
 
     private void UiWindow_SourceInitialized(object sender, EventArgs e)
     {

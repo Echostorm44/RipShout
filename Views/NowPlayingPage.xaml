@@ -37,13 +37,13 @@
                               Fill="GhostWhite" Stroke="Black" StrokeThickness="2"></cc:OutlinedTextBlock>
         <StackPanel Orientation="Horizontal" Grid.Row="4" Grid.Column="1">
             <cc:OutlinedTextBlock Text="{Binding CurrentBytesRead}" FontSize="19" Margin="0,0,10,0" FontWeight="Bold"
-                                  Fill="GhostWhite" Stroke="Black" StrokeThickness="2"></cc:OutlinedTextBlock>
-            <cc:OutlinedTextBlock Text="{Binding CurrentBitrate}" FontSize="19" FontWeight="Bold"
-                                  Fill="GhostWhite" Stroke="Black" StrokeThickness="2"></cc:OutlinedTextBlock>
+                                  Fill="GhostWhite" Stroke="Black" StrokeThickness="2"></cc:OutlinedTextBlock>            
             <Button BorderThickness="0" Padding="0" Margin="10,0,0,0" Click="Mp3Folder_Clicked">
                 <ui:SymbolIcon Symbol="Folder32" FontSize="26" VerticalAlignment="Top"></ui:SymbolIcon>
             </Button>
         </StackPanel>
-        <Slider Maximum="1" Width="200" TickFrequency="0.01" TickPlacement="None" Value="{Binding PlayerVolume, Mode=TwoWay}" Grid.Row="5" Grid.Column="1" />
+        <Slider Maximum="1" Width="200" TickFrequency="1" TickPlacement="None" Minimum="0" Value="{Binding PlayerVolume, Mode=TwoWay}" Grid.Row="5" Grid.Column="1" />
+        <TextBlock Width="200" Text="{Binding VolPercent, Mode=TwoWay}" Grid.Row="5" Grid.Column="2" 
+                   HorizontalAlignment="Left" Margin="10,0,0,0" />
     </Grid>    
 </ui:UiPage>

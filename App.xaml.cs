@@ -32,7 +32,11 @@ public partial class App : Application
     public static RadioService? MyRadio { get; set; }
     public static SettingsModel MySettings { get; set; }
     public static ObservableCollection<ChannelModel> CachedChannelList { get; set; }
-    public static (string listenKey, bool getDI, bool getRt, bool getJazz, bool getRock, bool getZen, bool getClassical, bool getOneFm) CachedChannelListConfig { get; set; }
+    public static (string listenKey, bool getDI, bool getRt, bool getJazz, bool getRock, bool getZen, bool getClassical, bool getOneFm) CachedChannelListConfig
+    {
+        get;
+        set;
+    }
     static SemaphoreSlim fetchSemi = new SemaphoreSlim(1, 1);
     Debouncer bounce = new Debouncer(2000);
 
@@ -49,7 +53,7 @@ public partial class App : Application
     public static async Task<bool> LoadChannels()
     {
         CachedChannelList.Clear();
-        if (CachedChannelList.Count != 0 && App.CachedChannelListConfig == (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
+        if(CachedChannelList.Count != 0 && App.CachedChannelListConfig == (App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
                         App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.ShowOneFmChannels))
         {
             // Nothing to do, bail
@@ -63,25 +67,25 @@ public partial class App : Application
                 var channelList = new List<ChannelModel>();
                 var tempAaChans = await AudioAddictChannelServices.AudioAddictGetChannelsService.GetChannelsAsync(App.MySettings.AudioAddictListenKey, App.MySettings.ShowDiChannels, App.MySettings.ShowRadioTunesChannels,
                 App.MySettings.ShowJazzRadioChannels, App.MySettings.ShowRockRadioChannels, App.MySettings.ShowZenRadioChannels, App.MySettings.ShowClassicalRadioChannels, App.MySettings.FavoriteIDs);
-                foreach (var aaChan in tempAaChans)
+                foreach(var aaChan in tempAaChans)
                 {
                     aaChan.IsFavorite = MySettings.FavoriteIDs.Contains(aaChan.ID);
                     channelList.Add(aaChan);
                 }
                 // Add oneFm to chans
-                if (MySettings.ShowOneFmChannels)
+                if(MySettings.ShowOneFmChannels)
                 {
                     var oneFMChans = await OneFmChannelServices.OneFmGetStationsService.GetChannelsAsync(App.MySettings.FavoriteIDs);
-                    if (oneFMChans != null)
+                    if(oneFMChans != null)
                     {
-                        foreach (var oneChan in oneFMChans)
+                        foreach(var oneChan in oneFMChans)
                         {
                             oneChan.IsFavorite = MySettings.FavoriteIDs.Contains(oneChan.ID);
                             channelList.Add(oneChan);
                         }
                     }
                 }
-                foreach (var item in channelList.OrderByDescending(a => a.IsFavorite).ThenByDescending(a => a.Family))
+                foreach(var item in channelList.OrderByDescending(a => a.IsFavorite).ThenByDescending(a => a.Family))
                 {
                     CachedChannelList.Add(item);
                 }
@@ -162,14 +166,25 @@ public partial class App : Application
     private async void OnExit(object sender, ExitEventArgs e)
     {
         MyRadio.Dispose();
-
-        foreach (var doomedFolder in Directory.EnumerateDirectories(MySettings.SaveTempMusicToFolder))
+        Task.Delay(1000).Wait();
+        foreach(var doomedFolder in Directory.EnumerateDirectories(MySettings.SaveTempMusicToFolder))
         {
             try
             {// TODO this needs a beat for the stream to close || it won't be able to access
                 Directory.Delete(doomedFolder, true);
             }
-            catch (Exception ex)
+            catch(Exception ex)
+            {
+                GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
+            }
+        }
+        foreach(var doomedFile in Directory.EnumerateFiles(MySettings.SaveTempMusicToFolder))
+        {
+            try
+            {// TODO this needs a beat for the stream to close || it won't be able to access
+                File.Delete(doomedFile);
+            }
+            catch(Exception ex)
             {
                 GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
             }

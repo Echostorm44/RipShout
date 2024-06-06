@@ -18,9 +18,6 @@ using System.Windows.Shapes;
 
 namespace RipShout.Views;
 
-/// <summary>
-/// Interaction logic for NowPlayingPage.xaml
-/// </summary>
 public partial class NowPlayingPage
 {
     public NowPlayingViewModel ViewModel { get; }
@@ -38,8 +35,6 @@ public partial class NowPlayingPage
 
     private void Mp3Folder_Clicked(object sender, RoutedEventArgs e)
     {
-        //Process.Start(App.MySettings.SaveFinalMusicToFolder);
-        //Process.Start("explorer", App.MySettings.SaveFinalMusicToFolder);
         Process.Start(new ProcessStartInfo(App.MySettings.SaveFinalMusicToFolder) { UseShellExecute = true });
     }
 }
