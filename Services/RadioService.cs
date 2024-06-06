@@ -1,64 +1,49 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
+using ExCSS;
 using Fizzler;
 using Hqub.MusicBrainz.API.Entities;
 using LibVLCSharp.Shared;
 using NAudio.Gui;
 using NAudio.Wave;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using RestSharp;
 using RipShout.Helpers;
 using RipShout.Models;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Data;
-using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Media;
-using System.Net;
-using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Threading;
-using Wpf.Ui.Controls;
 
 namespace RipShout.Services;
 
 public class RadioService : IDisposable
 {
-    public ShoutCastStream CurrentShoutCastStream { get; set; }
     public bool Running { get; set; }
     public bool SaveTrackRunning { get; set; }
     public bool GetTrackDataRunning { get; set; }
-    public System.Windows.Media.MediaPlayer MediaPlaya { get; set; }
-    int currentSongID = 0;
-    Stream? byteOut;
-    byte[] buffer = new byte[16000];
-    bool isFrontCut = true;
     string workingPath = "";
-    double totByteCount;
-    string lastTitle = "";
     bool workSwitch = true;
     SongDetailsModel currentSongDetails;
 
+    public LibVLCSharp.Shared.MediaPlayer VlcMediaPlayerShell { get; set; }
+    public LibVLC libVLC { get; set; }
+    public WaveOutEvent WaveOutPlayer { get; set; }
+
     public RadioService()
     {
-        CurrentShoutCastStream = new ShoutCastStream();
         currentSongDetails = new SongDetailsModel();
-        MediaPlaya = new System.Windows.Media.MediaPlayer();
-        MediaPlaya.Volume = App.MySettings.PlayerVolume;
         Running = false;
+        Core.Initialize();
+        libVLC = new LibVLC(enableDebugLogs: true, "--no-video", "--network-caching=4000");
+        VlcMediaPlayerShell = new LibVLCSharp.Shared.MediaPlayer(libVLC);
+        WaveOutPlayer = new WaveOutEvent();
+        VlcMediaPlayerShell.Volume = 1;
+        WaveOutPlayer.Volume = 1;
     }
 
     public void StopStreaming()
@@ -83,7 +68,6 @@ public class RadioService : IDisposable
                 return;
             }
         }
-        CurrentShoutCastStream = new ShoutCastStream();
 
         workSwitch = true;
 
@@ -92,78 +76,159 @@ public class RadioService : IDisposable
             try
             {
                 Running = true;
-                Task<bool> startUp = CurrentShoutCastStream.StartUp(url, backupURL);
-                var startupWorked = startUp.Result;
-                if(!startupWorked)
+                var media = new Media(libVLC, new Uri(url));
+                media.AddOption(":no-video");
+                media.AddOption(":network-caching=5000");
+                VlcMediaPlayerShell.Media = media;
+                var outputFolder = App.MySettings.SaveTempMusicToFolder;
+                if(!Directory.Exists(outputFolder))
                 {
-                    SetCurrentSongDataToStopped();
-                    throw new Exception("Couldn't start stream");
+                    Directory.CreateDirectory(outputFolder);
                 }
-                CurrentShoutCastStream.StreamTitleChanged += new StreamTitleChangedHandler(scS_StreamTitleChanged);
-                //if(!Directory.Exists(App.MySettings.SaveTempMusicToFolder + @"\" + Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\"))
-                //{
-                //    Directory.CreateDirectory(App.MySettings.SaveTempMusicToFolder + @"\" + Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\");
-                //}
-                //byteOut = new FileStream(App.MySettings.SaveTempMusicToFolder + @"\" +
-                //    Regex.Replace(CurrentShoutCastStream.StreamGenre, @"[^A-Za-z0-9 -]", "") + @"\" + @"[Front-Cut]" +
-                //    CurrentShoutCastStream.StreamTitle + ".mp3", FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
+                var outputFilePath = System.IO.Path.Combine(outputFolder, "frontCut.wav");
+                var waveFormat = new WaveFormat(8000, 16, 1);
+                var writer = new WaveFileWriter(outputFilePath, waveFormat);
+                var waveProvider = new BufferedWaveProvider(waveFormat);
+                WaveOutPlayer.Init(waveProvider);
+                VlcMediaPlayerShell.SetAudioFormatCallback(AudioSetup, AudioCleanup);
+                VlcMediaPlayerShell.SetAudioCallbacks(PlayAudio, PauseAudio, ResumeAudio, FlushAudio, DrainAudio);
 
-                SetCurrentSongDataToStopped();
+                VlcMediaPlayerShell.Play();
+                WaveOutPlayer.Play();
+                // Wait a bit then set volume again, this doesn't seem to take until it is playing.
+                await Task.Delay(500);
 
-                Core.Initialize();
+                WaveOutPlayer.Volume = (float)App.MySettings.PlayerVolume;
+                var initVol = (int)(App.MySettings.PlayerVolume * 100);
+                VlcMediaPlayerShell.Volume = initVol;
 
-                using(var libVLC = new LibVLC(enableDebugLogs: true, "--no-video", "--network-caching=4000"))
+                var currentTitle = "frontCut";
+                string playingTitle = "";
+                string savingTitle = "";
+                int trackCounter = 0;
+                while(workSwitch)
                 {
-                    libVLC.Log += (s, e) =>
+                    await Task.Delay(500);
+                    var newMetaTitle = media.Meta(MetadataType.NowPlaying);
+                    var genre = media.Meta(MetadataType.Genre);
+                    if(!string.IsNullOrEmpty(newMetaTitle))
                     {
-                        Trace.WriteLine($"[{e.Level}] {e.Module}:{e.Message}");
-                    };
-                    using(var mediaPlayer = new LibVLCSharp.Shared.MediaPlayer(libVLC))
-                    {
-                        mediaPlayer.Volume = 100;
-                        using(var media = new Media(libVLC, new StreamMediaInput(CurrentShoutCastStream)))
+                        if(newMetaTitle != currentTitle)
                         {
-                            media.AddOption(":no-video");
-                            media.AddOption(":network-caching=4000");
-                            mediaPlayer.Media = media;
-                            mediaPlayer.Play();
-
-                            while(workSwitch)
+                            var saveSongDetails = currentSongDetails.DeepCopy();
+                            currentSongDetails = new SongDetailsModel();
+                            currentSongDetails.ArtLoaded = false;
+                            // Clean up the title so it isn't invalid to use in the save path
+                            playingTitle = Regex.Replace(newMetaTitle, @"[^A-Za-z0-9 -\]]", "", 
+                                RegexOptions.CultureInvariant);
+                            if(string.IsNullOrEmpty(newMetaTitle))
                             {
-                                await Task.Delay(1000);
-                                currentSongDetails.BytesRead = CurrentShoutCastStream.BytesToWrite.Count;
-                                WeakReferenceMessenger.Default.Send(new CurrentStreamStatsChangedMessage(currentSongDetails));
+                                playingTitle = "Unknown";
                             }
+                            foreach(char c in Path.GetInvalidFileNameChars())
+                            {
+                                playingTitle = playingTitle.Replace(c, ' ');
+                            }
+                            genre = Regex.Replace(genre, @"[^A-Za-z0-9 -]", "");
+                            if(string.IsNullOrEmpty(genre))
+                            {
+                                genre = "Unknown";
+                            }
+                            currentSongDetails.Genre = genre;
+                            var splitTitle = newMetaTitle.Split('-', StringSplitOptions.TrimEntries);
+                            if(splitTitle.Length > 1)
+                            {
+                                var workingDeetz = splitTitle.ToList();
+                                currentSongDetails.ArtistName = workingDeetz.First();
+                                workingDeetz.RemoveAt(0);
+                                currentSongDetails.SongName = String.Join("-", workingDeetz);
+                                // In case the song is called 867-5309 Jenny or the like
+                            }
+                            else
+                            {
+                                currentSongDetails.SongName = newMetaTitle;
+                            }
+                            ThreadPool.QueueUserWorkItem(a =>
+                            {
+                                GrabExtraSongData(ref currentSongDetails);
+                            });
+                            writer.Flush();
+                            waveProvider.ClearBuffer();
+                            writer.Dispose();
+                            outputFilePath = System.IO.Path.Combine(outputFolder, playingTitle + ".wav");
+                            writer = new WaveFileWriter(outputFilePath, waveFormat);
+
+                            if(trackCounter > 1)// This means we have a full track to save as it has passed twice, once
+                            {// for the init && again for the front cut.
+                                var lastWaveTrack = System.IO.Path.Combine(outputFolder,
+                                    savingTitle + ".wav");
+                                ThreadPool.QueueUserWorkItem(o => 
+                                    SaveFinishedTrack(lastWaveTrack, saveSongDetails));
+                            }
+                            currentTitle = newMetaTitle;
+                            savingTitle = playingTitle;
+                            trackCounter++;
                         }
+                    }
+                    if(!GetTrackDataRunning && currentSongDetails.ArtLoaded)
+                    {// Don't mess with it while we're getting new data || we get a race condition on art.
+                        WeakReferenceMessenger.Default.Send(new CurrentStreamStatsChangedMessage(currentSongDetails));
+                    }
+                }
+                // outside work loop
+                WaveOutPlayer.Stop();
+                VlcMediaPlayerShell.Stop();
+
+                #region Audio Callbacks
+
+                void PlayAudio(IntPtr data, IntPtr samples, uint count, long pts)
+                {
+                    try
+                    {
+                        int bytes = (int)count * 2; // (16 bit, 1 channel)
+                        var buffer = new byte[bytes];
+                        Marshal.Copy(samples, buffer, 0, bytes);
+                        currentSongDetails.BytesRead += bytes;
+                        waveProvider.AddSamples(buffer, 0, bytes);
+                        writer.Write(buffer, 0, bytes);
+                    }
+                    catch(Exception ex)
+                    {
+                        GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
                     }
                 }
 
-#region Old
+                int AudioSetup(ref IntPtr opaque, ref IntPtr format, ref uint rate, ref uint channels)
+                {
+                    channels = (uint)waveFormat.Channels;
+                    rate = (uint)waveFormat.SampleRate;
+                    return 0;
+                }
 
-                //while(workSwitch)
-                //{
-                //    int bytes = CurrentShoutCastStream.Read(buffer, 0, buffer.Length);
+                void DrainAudio(IntPtr data)
+                {
+                    writer.Flush();
+                }
 
-                //    if(bytes <= 0)
-                //    {
-                //        SetCurrentSongDataToStopped();
-                //        WeakReferenceMessenger.Default.Send(new CurrentStreamStatsChangedMessage(currentSongDetails));
-                //        isFrontCut = false;
-                //        return;
-                //    }
+                void FlushAudio(IntPtr data, long pts)
+                {
+                    writer.Flush();
+                    waveProvider.ClearBuffer();
+                }
 
-                //    //for(int i = 0; i < bytes; i++)
-                //    //{
-                //    //    byteOut.Write(buffer, i, 1);
-                //    //}
-                //    bufferedWaveProvider.AddSamples(buffer, 0, bytes);
-                //    ms.Write(buffer, 0, bytes);
-                //    ms.CopyTo(byteOut);
+                void ResumeAudio(IntPtr data, long pts)
+                {
+                    WaveOutPlayer.Play();
+                }
 
-                //    totByteCount += bytes;
-                //    currentSongDetails.BytesRead = (int)totByteCount;
-                //    WeakReferenceMessenger.Default.Send(new CurrentStreamStatsChangedMessage(currentSongDetails));
-                //}
+                void PauseAudio(IntPtr data, long pts)
+                {
+                    WaveOutPlayer.Pause();
+                }
+
+                void AudioCleanup(IntPtr opaque)
+                {
+                }
 
                 #endregion
             }
@@ -175,14 +240,8 @@ public class RadioService : IDisposable
             }
             finally
             {
-                if(byteOut != null)
-                {
-                    byteOut.Dispose();
-                }
-                isFrontCut = true;
-                CurrentShoutCastStream.IsFrontCut = true;
-                CurrentShoutCastStream.StreamTitleChanged -= new StreamTitleChangedHandler(scS_StreamTitleChanged);
                 Running = false;
+                SetCurrentSongDataToStopped();
             }
         });
     }
@@ -262,92 +321,16 @@ public class RadioService : IDisposable
         }
     }
 
-    void scS_StreamTitleChanged(object source, string title, string genre, string bitrate, string audioEncodeType)
-    {
-        string cleanTitle = "";
-        try
-        {
-            string Path1 = "c:\\test\\test.tmp";
-            if(!string.IsNullOrEmpty(workingPath))
-            {   // Convert if it needs it   
-                var lastTrack = currentSongDetails.DeepCopy();
-                if(!isFrontCut)
-                {
-                    ThreadPool.QueueUserWorkItem(o => SaveFinishedTrack(workingPath, lastTrack));
-                }
-            }
-            string cleanGenre = Regex.Replace(genre, @"[^A-Za-z0-9 -]", "");
-            if(string.IsNullOrEmpty(cleanGenre))
-            {
-                cleanGenre = "Unknown";
-            }
-            cleanTitle = Regex.Replace(title, @"[^A-Za-z0-9 -\]]", "", RegexOptions.CultureInvariant);
-            if(string.IsNullOrEmpty(cleanTitle))
-            {
-                cleanTitle = "Unknown";
-            }
-            foreach(char c in Path.GetInvalidFileNameChars())
-            {
-                cleanTitle = cleanTitle.Replace(c, ' ');
-            }
-
-            if(isFrontCut)
-            {
-                workingPath = GetSongSavePath(App.MySettings.SaveTempMusicToFolder, cleanTitle, cleanGenre, true);
-                //byteOut = new FileStream(workingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
-                isFrontCut = false;
-                CurrentShoutCastStream.IsFrontCut = false;
-                if(cleanTitle.Length > 0)
-                {
-                    lastTitle = cleanTitle;
-                }
-            }
-            else
-            {
-                string newPath = GetSongSavePath(App.MySettings.SaveTempMusicToFolder, cleanTitle, cleanGenre, false);
-                //byteOut = new FileStream(newPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read);
-                workingPath = newPath;
-                lastTitle = cleanTitle;
-            }
-
-            currentSongID++;
-            currentSongDetails = new SongDetailsModel()
-            {
-                ID = currentSongID,
-                Genre = genre
-            };
-            var splitTitle = cleanTitle.Split('-', StringSplitOptions.TrimEntries);
-            if(splitTitle.Length > 1)
-            {
-                var workingDeetz = splitTitle.ToList();
-                currentSongDetails.ArtistName = workingDeetz.First();
-                workingDeetz.RemoveAt(0);
-                currentSongDetails.SongName = String.Join("-", workingDeetz);// In case the song is called 867-5309 Jenny or the like
-            }
-            else
-            {
-                currentSongDetails.SongName = cleanTitle;
-            }
-            currentSongDetails.Bitrate = bitrate;
-            ThreadPool.QueueUserWorkItem(a => GrabExtraSongData(ref currentSongDetails));
-            WeakReferenceMessenger.Default.Send(new CurrentStreamStatsChangedMessage(currentSongDetails));
-        }
-        catch(Exception ex)
-        {
-            GeneralHelpers.WriteLogEntry(ex.ToString(), GeneralHelpers.LogFileType.Exception);
-        }
-        finally
-        {
-            totByteCount = 0;
-        }
-    }
-
     void GrabExtraSongData(ref SongDetailsModel currentModel)
     {
-        // Reach out for fan art, album art, alb name, lyrics, etc
-        GetTrackDataRunning = true;
+        // Reach out for fan art, album art, alb name, lyrics, etc        
         try
         {
+            if(GetTrackDataRunning)
+            {
+                return;
+            }
+            GetTrackDataRunning = true;
             var discogTrackInfo = TrackInfoHelpers.GetTrackInfoFromDiscogs(currentModel.ArtistName,
                     currentModel.SongName, "dzlteADaCwkHvvgoxQKhfIlXujJIZJuFxeaWselC");
             if(discogTrackInfo != null)
@@ -383,39 +366,48 @@ public class RadioService : IDisposable
             currentModel.HasArtistImagesInLocalFolder = false;
             if(!string.IsNullOrEmpty(artistID))
             {
-                var fanArt = TrackInfoHelpers.GetFanArtFromFanArt(artistID, "f70d3e1719d159ecc4819187ab742521");
-                if(fanArt != null && fanArt.artistbackground.Count > 0)
+                string backdropPath = App.MySettings.ArtistImageCacheFolder + "\\" + artistID;
+                if(!Directory.Exists(backdropPath))
                 {
-                    string backdropPath = App.MySettings.ArtistImageCacheFolder + "\\" + artistID;
-                    if(!Directory.Exists(backdropPath))
-                    {
-                        Directory.CreateDirectory(backdropPath);
-                    }
-                    foreach(var art in fanArt.artistbackground)
-                    {
-                        if(string.IsNullOrEmpty(art.url))
-                        {
-                            continue;
-                        }
+                    Directory.CreateDirectory(backdropPath);
+                }
 
-                        var fileName = art.url?.Split('/')?.LastOrDefault();
-                        if(!string.IsNullOrEmpty(fileName) && !File.Exists(backdropPath + "\\" + fileName))
+                if(Directory.GetFiles(backdropPath).Length > 0)
+                {
+                    currentModel.PathToBackdrops = backdropPath;
+                    currentModel.HasArtistImagesInLocalFolder = true;
+                }
+                else
+                {
+                    var fanArt = TrackInfoHelpers.GetFanArtFromFanArt(artistID, "f70d3e1719d159ecc4819187ab742521");
+                    if(fanArt != null && fanArt.artistbackground.Count > 0)
+                    {
+                        foreach(var art in fanArt.artistbackground)
                         {
-                            var backdropClient = new RestClient(art.url);
-                            var request = new RestRequest();
-                            request.Method = Method.Get;
-                            request.Timeout = -1;
-                            var response = backdropClient.DownloadData(request);
-                            if(response != null && response.Length > 0)
+                            if(string.IsNullOrEmpty(art.url))
                             {
-                                File.WriteAllBytes(backdropPath + "\\" + fileName, response);
+                                continue;
+                            }
+
+                            var fileName = art.url?.Split('/')?.LastOrDefault();
+                            if(!string.IsNullOrEmpty(fileName) && !File.Exists(backdropPath + "\\" + fileName))
+                            {
+                                var backdropClient = new RestClient(art.url);
+                                var request = new RestRequest();
+                                request.Method = Method.Get;
+                                request.Timeout = -1;
+                                var response = backdropClient.DownloadData(request);
+                                if(response != null && response.Length > 0)
+                                {
+                                    File.WriteAllBytes(backdropPath + "\\" + fileName, response);
+                                }
                             }
                         }
-                    }
-                    if(fanArt.artistbackground.Count > 0 || Directory.GetFiles(backdropPath).Length > 0)
-                    {
-                        currentModel.PathToBackdrops = backdropPath;
-                        currentModel.HasArtistImagesInLocalFolder = true;
+                        if(fanArt.artistbackground.Count > 0 || Directory.GetFiles(backdropPath).Length > 0)
+                        {
+                            currentModel.PathToBackdrops = backdropPath;
+                            currentModel.HasArtistImagesInLocalFolder = true;
+                        }
                     }
                 }
             }
@@ -424,6 +416,7 @@ public class RadioService : IDisposable
                 GeneralHelpers.WriteLogEntry(currentModel.ArtistName, GeneralHelpers.LogFileType.ArtistLookupFailure);
             }
             currentModel.ArtLoaded = true;
+            WeakReferenceMessenger.Default.Send(new CurrentStreamStatsChangedMessage(currentModel));
         }
         catch(Exception ex)
         {
@@ -475,19 +468,17 @@ public class RadioService : IDisposable
     public void Dispose()
     {
         workSwitch = false;
-        if(MediaPlaya != null)
+        Thread.Sleep(1000);// Give it a sec to stop gracefully
+        if(WaveOutPlayer != null)
         {
-            MediaPlaya.Stop();
-            MediaPlaya.Close();
+            WaveOutPlayer.Stop();
         }
-        if(byteOut != null)
+        if(VlcMediaPlayerShell != null)
         {
-            byteOut.Dispose();
+            VlcMediaPlayerShell.Stop();
         }
-        if(CurrentShoutCastStream != null)
-        {
-            CurrentShoutCastStream.Dispose();
-        }
+        WaveOutPlayer.Dispose();
+        VlcMediaPlayerShell.Dispose();
         Running = false;
     }
 }

@@ -44,7 +44,7 @@ public static class GeneralHelpers
 
     public static bool IsStringYear(string year)
     {
-        return (int.TryParse(year, out int myYear));
+        return int.TryParse(year, out int myYear);
     }
 
     public static string SetChannelID(ChannelModel station)
@@ -70,7 +70,6 @@ public static class GeneralHelpers
         return sb.ToString();
     }
 
-
     public enum LogFileType
     {
         Exception,
@@ -78,21 +77,26 @@ public static class GeneralHelpers
         AlbumLookupFailure,
     }
 
+    public static object lockLog = true;
+
     public static void WriteLogEntry(string entry, LogFileType logType)
     {
-        if(!App.MySettings.LoggingOn)
+        lock(lockLog)
         {
-            return;
-        }
-        string logFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Ripshout\\Logs\\";
-        if(!Directory.Exists(logFolder))
-        {
-            Directory.CreateDirectory(logFolder);
-        }
-        var fileName = "log-" + logType.ToString() + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss-ff") + ".txt";
-        using(TextWriter tw = new StreamWriter(logFolder + fileName))
-        {
-            tw.Write(entry);
+            if(!App.MySettings.LoggingOn)
+            {
+                return;
+            }
+            string logFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Ripshout\\Logs\\";
+            if(!Directory.Exists(logFolder))
+            {
+                Directory.CreateDirectory(logFolder);
+            }
+            var fileName = "log-" + logType.ToString() + DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss-ff") + ".txt";
+            using(TextWriter tw = new StreamWriter(logFolder + fileName))
+            {
+                tw.Write(entry);
+            }
         }
     }
 }

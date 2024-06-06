@@ -25,7 +25,11 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
     string currentBytesRead = "0";
     public string CurrentBytesRead
     {
-        get => currentBytesRead;
+        get
+        {
+            return currentBytesRead;
+        }
+
         set
         {
             if(currentBytesRead == value)
@@ -40,7 +44,11 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
     string currentSongName = "";
     public string CurrentArtistAndSongNames
     {
-        get => currentSongName;
+        get
+        {
+            return currentSongName;
+        }
+
         set
         {
             if(currentSongName == value)
@@ -52,27 +60,16 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentArtistAndSongNames)));
         }
     }
-    string currentBitrate = "";
-    public string CurrentBitrate
-    {
-        get => currentBitrate;
-        set
-        {
-            if(currentBitrate == value)
-            {
-                return;
-            }
-
-            currentBitrate = value;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentBitrate)));
-        }
-    }
     public ConcurrentDictionary<int, string> BackDropImages { get; set; }
     public string DefaultBackDropImagePath { get; set; }
     string songName;
     public string SongName
     {
-        get => songName;
+        get
+        {
+            return songName;
+        }
+
         set
         {
             if(songName == value)
@@ -87,7 +84,11 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
     string artistName;
     public string ArtistName
     {
-        get => artistName;
+        get
+        {
+            return artistName;
+        }
+
         set
         {
             if(artistName == value)
@@ -106,7 +107,11 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
     string currentAlbumImagePath;
     public string CurrentAlbumImagePath
     {
-        get => currentAlbumImagePath;
+        get
+        {
+            return currentAlbumImagePath;
+        }
+
         set
         {
             if(currentAlbumImagePath == value)
@@ -122,7 +127,11 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
     string currentBackdropImagePath;
     public string CurrentBackdropImagePath
     {
-        get => currentBackdropImagePath;
+        get
+        {
+            return currentBackdropImagePath;
+        }
+
         set
         {
             if(currentBackdropImagePath == value)
@@ -137,27 +146,49 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
 
     int currentBackdropIndex = 0;
 
-    public MediaPlayer Playa { get; set; }
+    //public MediaPlayer Playa { get; set; }
     double playerVolume;
+    private string volPercent;
+
     public double PlayerVolume
     {
-        get => playerVolume;
+        get
+        {
+            return playerVolume;
+        }
+
         set
         {
             if(playerVolume == value)
             {
                 return;
             }
-            App.MySettings.PlayerVolume = value;
-            App.MyRadio.MediaPlaya.Volume = value;
+            int volAsInt = (int)(value * 100);
+            VolPercent = volAsInt.ToString() + "%";
+            App.MySettings.PlayerVolume = volAsInt;
+            App.MyRadio.VlcMediaPlayerShell.Volume = volAsInt;
+            App.MyRadio.WaveOutPlayer.Volume = (float)value;
             playerVolume = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PlayerVolume)));
         }
     }
 
+    public string VolPercent
+    {
+        get
+        {
+            return volPercent;
+        }
+        set
+        {
+            volPercent = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(VolPercent)));
+        }
+    }
+
     public NowPlayingViewModel()
     {
-        Playa = App.MyRadio.MediaPlaya;
+        //Playa = App.MyRadio.MyMediaPlaya;
         PlayerVolume = App.MySettings.PlayerVolume;
         BackDropImages = new ConcurrentDictionary<int, string>();
         DefaultBackDropImagePath = System.IO.Path.Combine(Assembly.GetExecutingAssembly().Location, "/Images/DefaultBackdrop.png");
@@ -179,11 +210,9 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
             SongName = m.Value.SongName?.Trim();
             ArtistName = m.Value.ArtistName?.Trim();
             CurrentBytesRead = GeneralHelpers.GetHumanReadableFileSize(m.Value.BytesRead);
-            CurrentBitrate = "@ " + m.Value.Bitrate + "k";
             // Handle the message here, with r being the recipient and m being the
             // input message. Using the recipient passed as input makes it so that
             // the lambda expression doesn't capture "this", improving performance.
-
 
             // These two are loading too soon.  Need to wait for message saying there is something to look at or not.
             if(!albumArtLoaded && m.Value.ArtLoaded)
@@ -234,7 +263,6 @@ public class NowPlayingViewModel : INotifyPropertyChanged, IDisposable
             currentBackdropIndex++;
         }
     }
-
 
     public void Dispose()
     {
