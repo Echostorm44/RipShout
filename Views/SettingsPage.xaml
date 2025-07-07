@@ -1,0 +1,141 @@
+﻿<ui:UiPage x:Class="RipShout.Views.SettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:RipShout.Views"
+      xmlns:conv="clr-namespace:RipShout.Converters"
+      mc:Ignorable="d" Loaded="UiPage_Loaded" Unloaded="UiPage_Unloaded" 
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="Settings">
+    <ui:UiPage.Resources>
+        <conv:StringNullOrEmptyToVisibilityConverter x:Key="StringEmptyConverter"/>
+    </ui:UiPage.Resources>
+    <ScrollViewer>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <ui:CardControl Icon="Whiteboard24" Grid.Row="0">
+                <ui:CardControl.Header>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="AudioAddict Listen Key"></TextBlock>
+                        <TextBlock Text="Applies to DI.fm, RadioTunes, Jazz Radio, Zen Radio, Rock Radio and Classical Radio"></TextBlock>
+                        <TextBlock Text="Look on https://www.di.fm/settings on the Player Settings tab"></TextBlock>
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <TextBox x:Name="txtAudioAddictKey" Text="{Binding MySettings.AudioAddictListenKey}" Width="200"></TextBox>
+            </ui:CardControl>
+            <ui:CardControl Icon="Eye24" Grid.Row="1" Visibility="{Binding ElementName=txtAudioAddictKey, Path=Text, Converter={StaticResource StringEmptyConverter}}">
+                <ui:CardControl.Header>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Show Digitally Imported Channels"></TextBlock>
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{ Binding MySettings.ShowDiChannels }" ></ui:ToggleSwitch>
+            </ui:CardControl>
+            <ui:CardControl Icon="Eye24" Grid.Row="2" Visibility="{Binding ElementName=txtAudioAddictKey, Path=Text, Converter={StaticResource StringEmptyConverter}}">
+                <ui:CardControl.Header>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Show RadioTunes Channels"></TextBlock>
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{ Binding MySettings.ShowRadioTunesChannels }" ></ui:ToggleSwitch>
+            </ui:CardControl>
+            <ui:CardControl Icon="Eye24" Grid.Row="3" Visibility="{Binding ElementName=txtAudioAddictKey, Path=Text, Converter={StaticResource StringEmptyConverter}}">
+                <ui:CardControl.Header>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Show Jazz Radio Channels"></TextBlock>
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{ Binding MySettings.ShowJazzRadioChannels }" ></ui:ToggleSwitch>
+            </ui:CardControl>
+            <ui:CardControl Icon="Eye24" Grid.Row="4" Visibility="{Binding ElementName=txtAudioAddictKey, Path=Text, Converter={StaticResource StringEmptyConverter}}">
+                <ui:CardControl.Header>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Show Zen Radio Channels"></TextBlock>
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{ Binding MySettings.ShowZenRadioChannels }" ></ui:ToggleSwitch>
+            </ui:CardControl>
+            <ui:CardControl Icon="Eye24" Grid.Row="5" Visibility="{Binding ElementName=txtAudioAddictKey, Path=Text, Converter={StaticResource StringEmptyConverter}}">
+                <ui:CardControl.Header>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Show Rock Radio Channels"></TextBlock>
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{ Binding MySettings.ShowRockRadioChannels }" ></ui:ToggleSwitch>
+            </ui:CardControl>
+            <ui:CardControl Icon="Eye24" Grid.Row="6" Visibility="{Binding ElementName=txtAudioAddictKey, Path=Text, Converter={StaticResource StringEmptyConverter}}">
+                <ui:CardControl.Header>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Show Classical Radio Channels"></TextBlock>
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{ Binding MySettings.ShowClassicalRadioChannels }" ></ui:ToggleSwitch>
+            </ui:CardControl>
+            <ui:CardControl Icon="Eye24" Grid.Row="7">
+                <ui:CardControl.Header>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Show One FM Channels"></TextBlock>
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{ Binding MySettings.ShowOneFmChannels }" ></ui:ToggleSwitch>
+            </ui:CardControl>
+            <ui:CardAction Icon="Folder24" Grid.Row="8" Click="SetFinalMusicPath_Click">
+                <StackPanel Orientation="Vertical" >
+                    <TextBlock Text="Path To Finished Recordings"></TextBlock>
+                    <TextBlock Text="{Binding MySettings.SaveFinalMusicToFolder}"></TextBlock>
+                </StackPanel>
+            </ui:CardAction>
+            <ui:CardAction Icon="Folder24" Grid.Row="9" Click="SetTempMusicPath_Click">
+                <StackPanel Orientation="Vertical" >
+                    <TextBlock Text="Path To Temp Recordings"></TextBlock>
+                    <TextBlock Text="{Binding MySettings.SaveTempMusicToFolder}"></TextBlock>
+                </StackPanel>
+            </ui:CardAction>
+            <ui:CardAction Icon="Folder24" Grid.Row="10" Click="SetArtistImageCachePath_Click">
+                <StackPanel Orientation="Vertical" >
+                    <TextBlock Text="Path To Artist Backdrops"></TextBlock>
+                    <TextBlock Text="{Binding MySettings.ArtistImageCacheFolder}"></TextBlock>
+                </StackPanel>
+            </ui:CardAction>
+            <ui:CardAction Icon="Folder24" Grid.Row="11" Click="SetAlbumImageCachePath_Click">
+                <StackPanel Orientation="Vertical" >
+                    <TextBlock Text="Path To Album Covers"></TextBlock>
+                    <TextBlock Text="{Binding MySettings.AlbumImageCacheFolder}"></TextBlock>
+                </StackPanel>
+            </ui:CardAction>
+            <ui:CardControl Icon="BookTemplate20" Grid.Row="12">
+                <ui:CardControl.Header>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Enable Logging"></TextBlock>
+                    </StackPanel>
+                </ui:CardControl.Header>
+                <ui:ToggleSwitch IsChecked="{ Binding MySettings.LoggingOn }" ></ui:ToggleSwitch>
+            </ui:CardControl>
+            <ui:CardAction Grid.Row="13" Icon="ArrowReset24" Content="Refresh Station Channel Lists" Click="RefreshStationChannelsFromWeb_Click"/>
+            <ui:CardAction Grid.Row="14" Icon="PersonInfo20" Content="About" Click="About_Click" />
+            <ui:CardAction Grid.Row="15" Icon="PersonInfo20" Content="Source code on Github" Click="Source_Click" />
+        </Grid>
+    </ScrollViewer>
+</ui:UiPage>
